@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "184408633484",
+    "firebase_url": "https://dda-ca3-93575-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "dda-ca3-93575",
+    "storage_bucket": "dda-ca3-93575.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184408633484:android:dd3934c09661e51b5e8ba9",
+        "android_client_info": {
+          "package_name": "com.dda03.test"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184408633484-lrtotnkiv847ei6cmn8kndglg6us6cpn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBILqxfF7WZe9-BwaNUZDz76b4EiZg5QFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184408633484-lrtotnkiv847ei6cmn8kndglg6us6cpn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
