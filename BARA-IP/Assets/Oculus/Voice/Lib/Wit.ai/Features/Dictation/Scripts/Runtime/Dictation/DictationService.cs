@@ -6,13 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Dictation.Events;
-using Meta.WitAi.Events.UnityEventListeners;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Dictation.Events;
+using Facebook.WitAi.Events.UnityEventListeners;
+using Facebook.WitAi.Interfaces;
 using UnityEngine;
 
-namespace Meta.WitAi.Dictation
+namespace Facebook.WitAi.Dictation
 {
     public abstract class DictationService : MonoBehaviour, IDictationService, IAudioEventProvider, ITranscriptionEventProvider
     {

@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.WitAi.Data.Entities;
-using Meta.WitAi.Data.Intents;
-using Meta.WitAi.Json;
+using Facebook.WitAi.Data.Entities;
+using Facebook.WitAi.Data.Intents;
+using Facebook.WitAi.Lib;
 
-namespace Meta.WitAi
+namespace Facebook.WitAi
 {
     public static class WitResultUtilities
     {
@@ -54,21 +54,6 @@ namespace Meta.WitAi
         #endregion
 
         #region Entity methods
-        /// <summary>
-        /// Converts wit response node into a wit entity
-        /// </summary>
-        public static WitEntityData AsWitEntity(this WitResponseNode witResponse) => new WitEntityData(witResponse);
-
-        /// <summary>
-        /// Converts wit response node into a float entity
-        /// </summary>
-        public static WitEntityFloatData AsWitFloatEntity(this WitResponseNode witResponse) => new WitEntityFloatData(witResponse);
-
-        /// <summary>
-        /// Converts wit response node into an int entity
-        /// </summary>
-        public static WitEntityIntData AsWitIntEntity(this WitResponseNode witResponse) => new WitEntityIntData(witResponse);
-
         /// <summary>
         /// Gets the string value of the first entity
         /// </summary>
@@ -117,7 +102,7 @@ namespace Meta.WitAi
         public static WitEntityData GetFirstWitEntity(this WitResponseNode witResponse, string name)
         {
             var array = witResponse?[WIT_KEY_ENTITIES]?[name].AsArray;
-            return array?.Count > 0 ? array[0].AsWitEntity() : null;
+            return array?.Count > 0 ? array[0].AsWitEntity : null;
         }
 
         /// <summary>
@@ -130,7 +115,7 @@ namespace Meta.WitAi
             string name)
         {
             var array = witResponse?[WIT_KEY_ENTITIES]?[name].AsArray;
-            return array?.Count > 0 ? array[0].AsWitIntEntity() : null;
+            return array?.Count > 0 ? array[0].AsWitIntEntity : null;
         }
 
         /// <summary>
@@ -145,7 +130,7 @@ namespace Meta.WitAi
             var array = witResponse?[WIT_KEY_ENTITIES]?[name].AsArray;
 
             if (null == array || array.Count == 0) return defaultValue;
-            return array[0].AsWitIntEntity().value;
+            return array[0].AsWitIntEntity.value;
         }
 
         /// <summary>
@@ -157,7 +142,7 @@ namespace Meta.WitAi
         public static WitEntityFloatData GetFirstWitFloatEntity(this WitResponseNode witResponse, string name)
         {
             var array = witResponse?[WIT_KEY_ENTITIES]?[name].AsArray;
-            return array?.Count > 0 ? array[0].AsWitFloatEntity() : null;
+            return array?.Count > 0 ? array[0].AsWitFloatEntity : null;
         }
 
         /// <summary>
@@ -172,7 +157,7 @@ namespace Meta.WitAi
             var array = witResponse?[WIT_KEY_ENTITIES]?[name].AsArray;
 
             if (null == array || array.Count == 0) return defaultValue;
-            return array[0].AsWitFloatEntity().value;
+            return array[0].AsWitFloatEntity.value;
         }
 
         /// <summary>
@@ -186,7 +171,7 @@ namespace Meta.WitAi
             var entities = new WitEntityData[entityJsonArray?.Count ?? 0];
             for (int i = 0; i < entities.Length; i++)
             {
-                entities[i] = entityJsonArray[i].AsWitEntity();
+                entities[i] = entityJsonArray[i].AsWitEntity;
             }
 
             return entities;
@@ -204,7 +189,7 @@ namespace Meta.WitAi
             var entities = new WitEntityFloatData[entityJsonArray?.Count ?? 0];
             for (int i = 0; i < entities.Length; i++)
             {
-                entities[i] = entityJsonArray[i].AsWitFloatEntity();
+                entities[i] = entityJsonArray[i].AsWitFloatEntity;
             }
 
             return entities;
@@ -222,7 +207,7 @@ namespace Meta.WitAi
             var entities = new WitEntityIntData[entityJsonArray?.Count ?? 0];
             for (int i = 0; i < entities.Length; i++)
             {
-                entities[i] = entityJsonArray[i].AsWitIntEntity();
+                entities[i] = entityJsonArray[i].AsWitIntEntity;
             }
 
             return entities;
@@ -230,11 +215,6 @@ namespace Meta.WitAi
         #endregion
 
         #region Intent methods
-        /// <summary>
-        /// Converts wit response node into wit intent data
-        /// </summary>
-        public static WitIntentData AsWitIntent(this WitResponseNode witResponse) => new WitIntentData(witResponse);
-
         /// <summary>
         /// Gets the first intent's name
         /// </summary>
@@ -263,7 +243,7 @@ namespace Meta.WitAi
         public static WitIntentData GetFirstIntentData(this WitResponseNode witResponse)
         {
             var array = witResponse?[WIT_KEY_INTENTS]?.AsArray;
-            return array?.Count > 0 ? array[0].AsWitIntent() : null;
+            return array?.Count > 0 ? array[0].AsWitIntent : null;
         }
 
         /// <summary>
@@ -277,7 +257,7 @@ namespace Meta.WitAi
             var intents = new WitIntentData[intentResponseArray?.Count ?? 0];
             for (int i = 0; i < intents.Length; i++)
             {
-                intents[i] = intentResponseArray[i].AsWitIntent();
+                intents[i] = intentResponseArray[i].AsWitIntent;
             }
 
             return intents;

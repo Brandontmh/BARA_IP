@@ -6,10 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Data.Configuration;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Data.Configuration;
 
-namespace Meta.WitAi.Interfaces
+namespace Facebook.WitAi.Interfaces
 {
     public interface IWitRequestProvider
     {

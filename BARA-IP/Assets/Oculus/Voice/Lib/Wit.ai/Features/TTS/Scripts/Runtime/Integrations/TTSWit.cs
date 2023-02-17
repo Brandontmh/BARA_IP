@@ -10,14 +10,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
-using Meta.WitAi.Data.Configuration;
-using Meta.WitAi.TTS.Data;
-using Meta.WitAi.TTS.Events;
-using Meta.WitAi.TTS.Interfaces;
-using Meta.WitAi.Requests;
+using Facebook.WitAi.Data.Configuration;
+using Facebook.WitAi.TTS.Data;
+using Facebook.WitAi.TTS.Events;
+using Facebook.WitAi.TTS.Interfaces;
+using Facebook.WitAi.TTS.Utilities;
 using UnityEngine.Serialization;
 
-namespace Meta.WitAi.TTS.Integrations
+namespace Facebook.WitAi.TTS.Integrations
 {
     [Serializable]
     public class TTSWitVoiceSettings : TTSVoiceSettings
@@ -92,7 +92,7 @@ namespace Meta.WitAi.TTS.Integrations
         public TTSStreamEvents WebStreamEvents { get; set; } = new TTSStreamEvents();
 
         // Requests bly clip id
-        private Dictionary<string, VRequest> _webStreams = new Dictionary<string, VRequest>();
+        private Dictionary<string, WitUnityRequest> _webStreams = new Dictionary<string, WitUnityRequest>();
 
         // Whether TTSService is valid
         public override string GetInvalidError()
@@ -106,14 +106,14 @@ namespace Meta.WitAi.TTS.Integrations
             {
                 return "No WitConfiguration Set";
             }
-            if (string.IsNullOrEmpty(RequestSettings.configuration.GetClientAccessToken()))
+            if (string.IsNullOrEmpty(RequestSettings.configuration.clientAccessToken))
             {
                 return "No WitConfiguration Client Token";
             }
             return string.Empty;
         }
         // Ensures text can be sent to wit web service
-        public string IsTextValid(string textToSpeak) => string.IsNullOrEmpty(textToSpeak) ? WitConstants.ENDPOINT_TTS_NO_TEXT : string.Empty;
+        public string IsTextValid(string textToSpeak) => WitUnityRequest.IsTextValid(textToSpeak);
 
         /// <summary>
         /// Method for performing a web load request
@@ -139,8 +139,9 @@ namespace Meta.WitAi.TTS.Integrations
             }
 
             // Request tts
-            WitTTSVRequest request = new WitTTSVRequest(RequestSettings.configuration);
-            request.RequestStream(clipData.textToSpeak, clipData.queryParameters,
+            _webStreams[clipData.clipID] = WitUnityRequest.RequestTTSStream(RequestSettings.configuration,
+                clipData.textToSpeak, clipData.queryParameters,
+                (progress) => clipData.loadProgress = progress,
                 (clip, error) =>
                 {
                     _webStreams.Remove(clipData.clipID);
@@ -151,18 +152,9 @@ namespace Meta.WitAi.TTS.Integrations
                     }
                     else
                     {
-                        if (string.Equals(error, VRequest.CANCEL_ERROR, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            WebStreamEvents?.OnStreamCancel?.Invoke(clipData);
-                        }
-                        else
-                        {
-                            WebStreamEvents?.OnStreamError?.Invoke(clipData, error);
-                        }
+                        WebStreamEvents?.OnStreamError?.Invoke(clipData, error);
                     }
-                },
-                (progress) => clipData.loadProgress = progress);
-            _webStreams[clipData.clipID] = request;
+                });
         }
         /// <summary>
         /// Cancel web stream
@@ -177,12 +169,11 @@ namespace Meta.WitAi.TTS.Integrations
             }
 
             // Get request
-            VRequest request = _webStreams[clipData.clipID];
+            WitUnityRequest request = _webStreams[clipData.clipID];
             _webStreams.Remove(clipData.clipID);
 
             // Destroy immediately
-            request?.Cancel();
-            request = null;
+            request?.Unload();
 
             // Call delegate
             WebStreamEvents?.OnStreamCancel?.Invoke(clipData);
@@ -197,7 +188,7 @@ namespace Meta.WitAi.TTS.Integrations
         public TTSDownloadEvents WebDownloadEvents { get; set; } = new TTSDownloadEvents();
 
         // Requests by clip id
-        private Dictionary<string, WitVRequest> _webDownloads = new Dictionary<string, WitVRequest>();
+        private Dictionary<string, WitUnityRequest> _webDownloads = new Dictionary<string, WitUnityRequest>();
 
         /// <summary>
         /// Method for performing a web load request
@@ -223,9 +214,10 @@ namespace Meta.WitAi.TTS.Integrations
             }
 
             // Request tts
-            WitTTSVRequest request = new WitTTSVRequest(RequestSettings.configuration);
-            request.RequestDownload(downloadPath, clipData.textToSpeak, clipData.queryParameters,
-                (success, error) =>
+            _webDownloads[clipData.clipID] = WitUnityRequest.RequestTTSDownload(downloadPath,
+                RequestSettings.configuration, clipData.textToSpeak, clipData.queryParameters,
+                (progress) => clipData.loadProgress = progress,
+                (error) =>
                 {
                     _webDownloads.Remove(clipData.clipID);
                     if (string.IsNullOrEmpty(error))
@@ -236,9 +228,7 @@ namespace Meta.WitAi.TTS.Integrations
                     {
                         WebDownloadEvents?.OnDownloadError?.Invoke(clipData, downloadPath, error);
                     }
-                },
-                (progress) => clipData.loadProgress = progress);
-            _webDownloads[clipData.clipID] = request;
+                });
         }
         /// <summary>
         /// Method for cancelling a running load request
@@ -253,12 +243,11 @@ namespace Meta.WitAi.TTS.Integrations
             }
 
             // Get request
-            WitVRequest request = _webDownloads[clipData.clipID];
+            WitUnityRequest request = _webDownloads[clipData.clipID];
             _webDownloads.Remove(clipData.clipID);
 
             // Destroy immediately
-            request?.Cancel();
-            request = null;
+            request?.Unload();
 
             // Download cancelled
             WebDownloadEvents?.OnDownloadCancel?.Invoke(clipData, downloadPath);

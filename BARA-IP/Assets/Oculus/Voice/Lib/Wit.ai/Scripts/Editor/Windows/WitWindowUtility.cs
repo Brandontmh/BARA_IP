@@ -9,9 +9,9 @@
 using System;
 using System.Reflection;
 using UnityEditor;
-using Meta.WitAi.Data.Configuration;
+using Facebook.WitAi.Data.Configuration;
 
-namespace Meta.WitAi.Windows
+namespace Facebook.WitAi.Windows
 {
     public static class WitWindowUtility
     {

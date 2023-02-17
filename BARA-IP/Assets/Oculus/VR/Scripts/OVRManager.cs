@@ -159,11 +159,11 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
 		Unmanaged = OVRPlugin.ColorSpace.Unmanaged,
 		Rec_2020 = OVRPlugin.ColorSpace.Rec_2020,
 		Rec_709 = OVRPlugin.ColorSpace.Rec_709,
+		[InspectorName("Rift CV1 (Recommended)")]
 		Rift_CV1 = OVRPlugin.ColorSpace.Rift_CV1,
 		Rift_S = OVRPlugin.ColorSpace.Rift_S,
 		[InspectorName("Quest 1")]
 		Quest = OVRPlugin.ColorSpace.Quest,
-		[InspectorName("DCI-P3 (Recommended)")]
 		P3 = OVRPlugin.ColorSpace.P3,
 		Adobe_RGB = OVRPlugin.ColorSpace.Adobe_RGB,
 	}
@@ -341,7 +341,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     public static event Action<UInt64, bool> SceneCaptureComplete;
 
 
-
     /// <summary>
     /// Occurs when Health & Safety Warning is dismissed.
     /// </summary>
@@ -488,7 +487,7 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     }
 
     [HideInInspector]
-    private OVRManager.ColorSpace _colorGamut = OVRManager.ColorSpace.P3;
+    private OVRManager.ColorSpace _colorGamut = OVRManager.ColorSpace.Rift_CV1;
 
     /// <summary>
     /// The target color gamut the HMD will perform a color space transformation to
@@ -617,7 +616,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     public enum CompositionMethod
     {
         External,
-		[System.Obsolete("Deprecated. Direct composition is no longer supported", false)]
         Direct
     }
 
@@ -675,10 +673,9 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     public Color externalCompositionBackdropColorQuest = Color.clear;
 
     /// <summary>
-	/// (Deprecated) If true, Mixed Reality mode will use direct composition from the first web camera
+    /// If true, Mixed Reality mode will use direct composition from the first web camera
     /// </summary>
 
-	[System.Obsolete("Deprecated", false)]
     public enum CameraDevice
     {
         WebCamera0,
@@ -687,84 +684,72 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     }
 
     /// <summary>
-	/// (Deprecated) The camera device for direct composition
+    /// The camera device for direct composition
     /// </summary>
     [HideInInspector, Tooltip("The camera device for direct composition")]
-	[System.Obsolete("Deprecated", false)]
     public CameraDevice capturingCameraDevice = CameraDevice.WebCamera0;
 
     /// <summary>
-	/// (Deprecated) Flip the camera frame horizontally
+    /// Flip the camera frame horizontally
     /// </summary>
     [HideInInspector, Tooltip("Flip the camera frame horizontally")]
-	[System.Obsolete("Deprecated", false)]
     public bool flipCameraFrameHorizontally = false;
 
     /// <summary>
-	/// (Deprecated) Flip the camera frame vertically
+    /// Flip the camera frame vertically
     /// </summary>
     [HideInInspector, Tooltip("Flip the camera frame vertically")]
-	[System.Obsolete("Deprecated", false)]
     public bool flipCameraFrameVertically = false;
 
     /// <summary>
-	/// (Deprecated) Delay the touch controller pose by a short duration (0 to 0.5 second) to match the physical camera latency
+    /// Delay the touch controller pose by a short duration (0 to 0.5 second) to match the physical camera latency
     /// </summary>
     [HideInInspector, Tooltip("Delay the touch controller pose by a short duration (0 to 0.5 second) to match the physical camera latency")]
-	[System.Obsolete("Deprecated", false)]
     public float handPoseStateLatency = 0.0f;
 
     /// <summary>
-	/// (Deprecated) Delay the foreground / background image in the sandwich composition to match the physical camera latency. The maximum duration is sandwichCompositionBufferedFrames / {Game FPS}
+    /// Delay the foreground / background image in the sandwich composition to match the physical camera latency. The maximum duration is sandwichCompositionBufferedFrames / {Game FPS}
     /// </summary>
     [HideInInspector, Tooltip("Delay the foreground / background image in the sandwich composition to match the physical camera latency. The maximum duration is sandwichCompositionBufferedFrames / {Game FPS}")]
-	[System.Obsolete("Deprecated", false)]
     public float sandwichCompositionRenderLatency = 0.0f;
 
     /// <summary>
-	/// (Deprecated) The number of frames are buffered in the SandWich composition. The more buffered frames, the more memory it would consume.
+    /// The number of frames are buffered in the SandWich composition. The more buffered frames, the more memory it would consume.
     /// </summary>
     [HideInInspector, Tooltip("The number of frames are buffered in the SandWich composition. The more buffered frames, the more memory it would consume.")]
-	[System.Obsolete("Deprecated", false)]
     public int sandwichCompositionBufferedFrames = 8;
 
 
     /// <summary>
-	/// (Deprecated) Chroma Key Color
+    /// Chroma Key Color
     /// </summary>
     [HideInInspector, Tooltip("Chroma Key Color")]
-	[System.Obsolete("Deprecated", false)]
     public Color chromaKeyColor = Color.green;
 
     /// <summary>
-	/// (Deprecated) Chroma Key Similarity
+    /// Chroma Key Similarity
     /// </summary>
     [HideInInspector, Tooltip("Chroma Key Similarity")]
-	[System.Obsolete("Deprecated", false)]
     public float chromaKeySimilarity = 0.60f;
 
     /// <summary>
-	/// (Deprecated) Chroma Key Smooth Range
+    /// Chroma Key Smooth Range
     /// </summary>
     [HideInInspector, Tooltip("Chroma Key Smooth Range")]
-	[System.Obsolete("Deprecated", false)]
     public float chromaKeySmoothRange = 0.03f;
 
     /// <summary>
-	/// (Deprecated) Chroma Key Spill Range
+    ///  Chroma Key Spill Range
     /// </summary>
     [HideInInspector, Tooltip("Chroma Key Spill Range")]
-	[System.Obsolete("Deprecated", false)]
     public float chromaKeySpillRange = 0.06f;
 
     /// <summary>
-	/// (Deprecated) Use dynamic lighting (Depth sensor required)
+    /// Use dynamic lighting (Depth sensor required)
     /// </summary>
     [HideInInspector, Tooltip("Use dynamic lighting (Depth sensor required)")]
-	[System.Obsolete("Deprecated", false)]
     public bool useDynamicLighting = false;
 
-	[System.Obsolete("Deprecated", false)]
     public enum DepthQuality
     {
         Low,
@@ -772,27 +757,23 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
         High
     }
     /// <summary>
-	/// (Deprecated) The quality level of depth image. The lighting could be more smooth and accurate with high quality depth, but it would also be more costly in performance.
+    /// The quality level of depth image. The lighting could be more smooth and accurate with high quality depth, but it would also be more costly in performance.
     /// </summary>
     [HideInInspector, Tooltip("The quality level of depth image. The lighting could be more smooth and accurate with high quality depth, but it would also be more costly in performance.")]
-	[System.Obsolete("Deprecated", false)]
     public DepthQuality depthQuality = DepthQuality.Medium;
 
     /// <summary>
-	/// (Deprecated) Smooth factor in dynamic lighting. Larger is smoother
+    /// Smooth factor in dynamic lighting. Larger is smoother
     /// </summary>
     [HideInInspector, Tooltip("Smooth factor in dynamic lighting. Larger is smoother")]
-	[System.Obsolete("Deprecated", false)]
     public float dynamicLightingSmoothFactor = 8.0f;
 
     /// <summary>
-	/// (Deprecated) The maximum depth variation across the edges. Make it smaller to smooth the lighting on the edges.
+    /// The maximum depth variation across the edges. Make it smaller to smooth the lighting on the edges.
     /// </summary>
     [HideInInspector, Tooltip("The maximum depth variation across the edges. Make it smaller to smooth the lighting on the edges.")]
-	[System.Obsolete("Deprecated", false)]
     public float dynamicLightingDepthVariationClampingValue = 0.001f;
 
-	[System.Obsolete("Deprecated", false)]
     public enum VirtualGreenScreenType
     {
         Off,
@@ -802,39 +783,35 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     }
 
     /// <summary>
-	/// (Deprecated) Set the current type of the virtual green screen
+    /// Set the current type of the virtual green screen
     /// </summary>
     [HideInInspector, Tooltip("Type of virutal green screen ")]
-	[System.Obsolete("Deprecated", false)]
     public VirtualGreenScreenType virtualGreenScreenType = VirtualGreenScreenType.Off;
 
     /// <summary>
-	/// (Deprecated) Top Y of virtual screen
+    /// Top Y of virtual screen
     /// </summary>
     [HideInInspector, Tooltip("Top Y of virtual green screen")]
-	[System.Obsolete("Deprecated", false)]
     public float virtualGreenScreenTopY = 10.0f;
 
     /// <summary>
-	/// (Deprecated) Bottom Y of virtual screen
+    /// Bottom Y of virtual screen
     /// </summary>
     [HideInInspector, Tooltip("Bottom Y of virtual green screen")]
-	[System.Obsolete("Deprecated", false)]
     public float virtualGreenScreenBottomY = -10.0f;
 
     /// <summary>
-	/// (Deprecated) When using a depth camera (e.g. ZED), whether to use the depth in virtual green screen culling.
+    /// When using a depth camera (e.g. ZED), whether to use the depth in virtual green screen culling.
     /// </summary>
     [HideInInspector, Tooltip("When using a depth camera (e.g. ZED), whether to use the depth in virtual green screen culling.")]
-	[System.Obsolete("Deprecated", false)]
     public bool virtualGreenScreenApplyDepthCulling = false;
 
     /// <summary>
-	/// (Deprecated) The tolerance value (in meter) when using the virtual green screen with a depth camera. Make it bigger if the foreground objects got culled incorrectly.
+    /// The tolerance value (in meter) when using the virtual green screen with a depth camera. Make it bigger if the foreground objects got culled incorrectly.
     /// </summary>
     [HideInInspector, Tooltip("The tolerance value (in meter) when using the virtual green screen with a depth camera. Make it bigger if the foreground objects got culled incorrectly.")]
-	[System.Obsolete("Deprecated", false)]
     public float virtualGreenScreenDepthTolerance = 0.2f;
+
 
     public enum MrcActivationMode
     {
@@ -922,7 +899,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     internal bool requestEyeTrackingPermissionOnStartup;
 
     #endregion
-
 
     /// <summary>
     /// The native XR API being used
@@ -1407,7 +1383,7 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
 
     [SerializeField]
     [Tooltip("Available only for devices that support local dimming. It improves visual quality with a better display contrast ratio, but at a minor GPU performance cost.")]
-    private bool _localDimming = true;
+    private bool _localDimming = false;
 
     [Header("Tracking")]
     [SerializeField]
@@ -1671,13 +1647,11 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
 
     private void InitOVRManager()
     {
-
         // Only allow one instance at runtime.
         if (instance != null)
         {
             enabled = false;
             DestroyImmediate(this);
-
             return;
         }
 
@@ -1782,8 +1756,7 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
                 Debug.Log("OVR: Mixed Reality mode enabled");
                 if (UseDirectCompositionFromCmd())
                 {
-					Debug.Log("DirectionComposition deprecated. Fallback to ExternalComposition");
-					compositionMethod = CompositionMethod.External; // CompositionMethod.Direct;
+                    compositionMethod = CompositionMethod.Direct;
                 }
                 if (UseExternalCompositionFromCmd())
                 {
@@ -1800,7 +1773,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
 
         Initialize();
         InitPermissionRequest();
-
 
         Debug.LogFormat("Current display frequency {0}, available frequencies [{1}]",
             display.displayFrequency, string.Join(", ", display.displayFrequenciesAvailable.Select(f => f.ToString()).ToArray()));
@@ -1839,7 +1811,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
         if (isInsightPassthroughEnabled)
         {
             InitializeInsightPassthrough();
-
         }
 
         // Apply validation criteria to _localDimming toggle to ensure it isn't active on invalid systems
@@ -2016,11 +1987,7 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
 
             ShutdownInsightPassthrough();
 
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
             Application.Quit();
-#endif
         }
 
         if (AllowRecenter && OVRPlugin.shouldRecenter)
@@ -2522,7 +2489,7 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
         Debug.Log("[OVRManager] OnApplicationQuit");
     }
 
-#endregion // Unity Messages
+    #endregion // Unity Messages
 
     /// <summary>
     /// Leaves the application/game and returns to the launcher/dashboard
@@ -2768,7 +2735,6 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
         }
     }
 
-    private static PassthroughCapabilities _passthroughCapabilities;
 
     /// <summary>
     /// Checks whether Passthrough is supported by the system. This method should only be called when the XR Plug-in is initialized.
@@ -2804,14 +2770,11 @@ public class OVRManager : MonoBehaviour, OVRMixedRealityCaptureConfiguration
     /// Returns information about Passthrough capabilities provided by the system. This method should only be called when the XR Plug-in is initialized.
     /// </summary>
     public static PassthroughCapabilities GetPassthroughCapabilities() {
-        if (_passthroughCapabilities == null) {
-            OVRPlugin.PassthroughCapabilityFlags capabilityFlags = OVRPlugin.GetPassthroughCapabilityFlags();
-            _passthroughCapabilities = new PassthroughCapabilities(
-                supportsPassthrough: (capabilityFlags & OVRPlugin.PassthroughCapabilityFlags.Passthrough) == OVRPlugin.PassthroughCapabilityFlags.Passthrough,
-                supportsColorPassthrough: (capabilityFlags & OVRPlugin.PassthroughCapabilityFlags.Color) == OVRPlugin.PassthroughCapabilityFlags.Color
-            );
-        }
-        return _passthroughCapabilities;
+        OVRPlugin.PassthroughCapabilityFlags capabilityFlags = OVRPlugin.GetPassthroughCapabilityFlags();
+        return new PassthroughCapabilities(
+            supportsPassthrough: (capabilityFlags & OVRPlugin.PassthroughCapabilityFlags.Passthrough) == OVRPlugin.PassthroughCapabilityFlags.Passthrough,
+            supportsColorPassthrough: (capabilityFlags & OVRPlugin.PassthroughCapabilityFlags.Color) == OVRPlugin.PassthroughCapabilityFlags.Color
+        );
     }
 
     /// Checks whether Passthrough is initialized.

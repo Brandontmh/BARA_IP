@@ -8,7 +8,6 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Meta.Conduit
 {
@@ -23,11 +22,11 @@ namespace Meta.Conduit
         void Populate(Dictionary<string, object> actualParameters, Dictionary<string, string> parameterToRoleMap);
 
         /// <summary>
-        /// Returns true if a parameter with the specified name can be provided.
+        /// Returns true if a parameter with the specified name can be provided. 
         /// </summary>
         /// <param name="parameter">The name of the parameter.</param>
         /// <returns>True if a parameter with the specified name can be provided.</returns>
-        bool ContainsParameter(ParameterInfo parameter, StringBuilder log);
+        bool ContainsParameter(ParameterInfo parameter);
 
         /// <summary>
         /// Returns the actual value for a formal parameter.

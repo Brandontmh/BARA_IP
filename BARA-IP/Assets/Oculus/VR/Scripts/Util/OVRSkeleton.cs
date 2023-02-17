@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+[DefaultExecutionOrder(-80)]
 public class OVRSkeleton : MonoBehaviour
 {
     public interface IOVRSkeletonDataProvider

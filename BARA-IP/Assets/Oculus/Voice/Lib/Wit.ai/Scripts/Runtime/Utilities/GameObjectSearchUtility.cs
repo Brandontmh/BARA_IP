@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Meta.WitAi.Utilities
+namespace Facebook.WitAi.Utilities
 {
     public static class GameObjectSearchUtility
     {

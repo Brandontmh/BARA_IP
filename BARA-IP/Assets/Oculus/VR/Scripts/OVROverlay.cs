@@ -95,9 +95,9 @@ public class OVROverlay : MonoBehaviour
 	public bool isDynamic = false;
 
 	/// <summary>
-	/// If true, the layer would be used to present protected content (e.g. HDCP), the content won't be shown in screenshots or recordings.
+	/// If true, the layer would be used to present protected content (e.g. HDCP). The flag is effective only on PC.
 	/// </summary>
-	[Tooltip("If true, the layer would be used to present protected content (e.g. HDCP), the content won't be shown in screenshots or recordings.")]
+	[Tooltip("If true, the layer would be used to present protected content (e.g. HDCP). The flag is effective only on PC.")]
 	public bool isProtectedContent = false;
 
 	//Source and dest rects
@@ -286,7 +286,6 @@ public class OVROverlay : MonoBehaviour
 
 	private Renderer rend;
 
-
 	private int texturesPerStage { get { return (layout == OVRPlugin.LayerLayout.Stereo) ? 2 : 1; } }
 
 	private static bool NeedsTexturesForShape(OverlayShape shape)
@@ -332,7 +331,6 @@ public class OVROverlay : MonoBehaviour
 			return false;
 
 		OVRPlugin.LayerDesc desc = OVRPlugin.CalculateLayerDesc(shape, layout, size, mipLevels, sampleCount, etFormat, flags);
-
 
 		OVRPlugin.EnqueueSetupLayer(desc, compositionDepth, layerIdPtr);
 
@@ -828,8 +826,8 @@ public class OVROverlay : MonoBehaviour
 			layerId, frameIndex, pose.flipZ().ToPosef_Legacy(), scale.ToVector3f(), layerIndex, (OVRPlugin.OverlayShape)currentOverlayShape,
 			overrideTextureRectMatrix, textureRectMatrix, overridePerLayerColorScaleAndOffset, colorScale, colorOffset,
 			useExpensiveSuperSample, useBicubicFiltering, useEfficientSupersample, useEfficientSharpen, useExpensiveSharpen,
-			hidden, isProtectedContent
-			);
+			hidden);
+
 		prevOverlayShape = currentOverlayShape;
 
 		return isOverlayVisible;
@@ -990,7 +988,7 @@ public class OVROverlay : MonoBehaviour
 #endif
 	}
 
-	void ComputePoseAndScale(ref OVRPose pose, ref Vector3 scale, ref bool overlay, ref bool headLocked)
+	bool ComputeSubmit(ref OVRPose pose, ref Vector3 scale, ref bool overlay, ref bool headLocked)
 	{
 		Camera headCamera = Camera.main;
 
@@ -1020,11 +1018,6 @@ public class OVROverlay : MonoBehaviour
 			}
 			pose.position = headCamera.transform.position;
 		}
-	}
-
-	bool ComputeSubmit(ref OVRPose pose, ref Vector3 scale, ref bool overlay, ref bool headLocked)
-	{
-		ComputePoseAndScale(ref pose, ref scale, ref overlay, ref headLocked);
 
 		// Pack the offsetCenter directly into pose.position for offcenterCubemap
 		if (currentOverlayShape == OverlayShape.OffcenterCubemap)

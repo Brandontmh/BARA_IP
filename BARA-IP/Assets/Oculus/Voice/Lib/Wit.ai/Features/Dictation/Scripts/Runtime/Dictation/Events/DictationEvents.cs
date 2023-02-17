@@ -7,13 +7,13 @@
  */
 
 using System;
-using Meta.WitAi.Events;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi.Events;
+using Facebook.WitAi.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
 
-namespace Meta.WitAi.Dictation.Events
+namespace Facebook.WitAi.Dictation.Events
 {
     [Serializable]
     public class DictationEvents : EventRegistry, ITranscriptionEvent, IAudioInputEvents

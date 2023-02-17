@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Interfaces;
 using UnityEngine;
 
-namespace Meta.WitAi
+namespace Facebook.WitAi
 {
     public class Wit : VoiceService, IWitRuntimeConfigProvider
     {

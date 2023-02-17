@@ -9,7 +9,7 @@
 using UnityEditor;
 using System.Reflection;
 
-namespace Meta.WitAi.Windows
+namespace Facebook.WitAi.Windows
 {
     public class WitEntityPropertyDrawer : WitPropertyDrawer
     {
@@ -32,8 +32,6 @@ namespace Meta.WitAi.Windows
                         return WitTexts.Texts.ConfigurationEntitiesLookupsLabel;
                     case "roles":
                         return WitTexts.Texts.ConfigurationEntitiesRolesLabel;
-                    case "keywords":
-                        return WitTexts.Texts.ConfigurationEntitiesKeywordsLabel;
             }
 
             // Default to base
@@ -45,6 +43,7 @@ namespace Meta.WitAi.Windows
             switch (subfield.Name)
             {
                 case "name":
+                case "keywords":
                     return false;
             }
             return base.ShouldLayoutField(property, subfield);

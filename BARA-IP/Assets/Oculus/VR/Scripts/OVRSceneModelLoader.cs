@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 
-
 using System.Collections;
 using UnityEngine;
 
@@ -141,4 +140,3 @@ public class OVRSceneModelLoader : MonoBehaviour
             "Requesting the capture flow failed. The Scene Model cannot be loaded.");
     }
 }
-

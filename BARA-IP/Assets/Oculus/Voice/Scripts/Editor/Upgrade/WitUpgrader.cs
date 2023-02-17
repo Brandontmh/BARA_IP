@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-using Meta.WitAi;
+using Facebook.WitAi;
 using UnityEditor;
 using UnityEngine;
 

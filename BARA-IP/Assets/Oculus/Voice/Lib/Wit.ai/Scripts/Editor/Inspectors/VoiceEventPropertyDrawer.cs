@@ -8,7 +8,7 @@
 
 using UnityEditor;
 
-namespace Meta.WitAi.Events.Editor
+namespace Facebook.WitAi.Events.Editor
 {
     [CustomPropertyDrawer(typeof(VoiceEvents))]
     public class VoiceEventPropertyDrawer : EventPropertyDrawer<VoiceEvents>

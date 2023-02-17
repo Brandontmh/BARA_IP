@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Meta.WitAi
+namespace Facebook.WitAi
 {
     public static class WitEditorUI
     {
@@ -313,7 +313,7 @@ namespace Meta.WitAi
         }
         #endregion
 
-        #region MISCELLANEOUS
+        #region MISCELANEOUS
         public static void LayoutToggle(GUIContent key, ref bool toggleValue, ref bool isUpdated)
         {
             // Simple layout

@@ -14,18 +14,18 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Data;
-using Meta.WitAi.Data.Configuration;
-using Meta.WitAi.Json;
-using Meta.WitAi.Requests;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Data;
+using Facebook.WitAi.Data.Configuration;
+using Facebook.WitAi.Lib;
 using UnityEngine;
-using UnityEngine.Networking;
+using Facebook.WitAi.Utilities;
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace Meta.WitAi
+namespace Facebook.WitAi
 {
     /// <summary>
     /// Manages a single request lifecycle when sending/receiving data from Wit.ai.
@@ -72,8 +72,24 @@ namespace Meta.WitAi
         /// </summary>
         public const int ERROR_CODE_TIMEOUT = -7;
 
-        private IWitRequestConfiguration configuration;
-        public bool shouldPost;
+        public const string URI_SCHEME = "https";
+        public const string URI_AUTHORITY = "api.wit.ai";
+        public const int URI_DEFAULT_PORT = 0;
+
+        public const string WIT_API_VERSION = "20220728";
+        public const string WIT_SDK_VERSION = "0.0.47";
+
+        public const string WIT_ENDPOINT_SPEECH = "speech";
+        public const string WIT_ENDPOINT_MESSAGE = "message";
+        public const string WIT_ENDPOINT_DICTATION = "dictation";
+        public const string WIT_ENDPOINT_ENTITIES = "entities";
+        public const string WIT_ENDPOINT_INTENTS = "intents";
+        public const string WIT_ENDPOINT_TRAITS = "traits";
+        public const string WIT_ENDPOINT_APPS = "apps";
+        public const string WIT_ENDPOINT_UTTERANCES = "utterances";
+        public const string WIT_CLIENT_NAME = "wit-unity";
+
+        private WitConfiguration configuration;
 
         private string command;
         private string path;
@@ -90,8 +106,7 @@ namespace Meta.WitAi
 
         public byte[] postData;
         public string postContentType;
-        public string requestIdOverride;
-        public string forcedHttpMethodType = null;
+        public string requestId = Guid.NewGuid().ToString();
 
         private object streamLock = new object();
 
@@ -190,10 +205,10 @@ namespace Meta.WitAi
         private bool isServerAuthRequired;
         public string StatusDescription => statusDescription;
 
-        private int _timeoutMs;
-        public int Timeout => _timeoutMs;
+        public int Timeout => configuration ? configuration.timeoutMS : 10000;
 
         private bool configurationRequired;
+        private string serverToken;
         private string callingStackTrace;
         private DateTime requestStartTime;
         private ConcurrentQueue<byte[]> writeBuffer = new ConcurrentQueue<byte[]>();
@@ -209,12 +224,9 @@ namespace Meta.WitAi
             if (!configuration) throw new ArgumentException("Configuration is not set.");
             configurationRequired = true;
             this.configuration = configuration;
-            this._timeoutMs = configuration ? configuration.timeoutMS : 10000;
+            this.command = path.Split('/').First();
             this.path = path;
             this.queryParams = queryParams;
-            this.command = path.Split('/').First();
-            this.shouldPost = WitEndpointConfig.GetEndpointConfig(configuration).Speech == this.command ||
-                              WitEndpointConfig.GetEndpointConfig(configuration).Dictation == this.command;
         }
 
         public WitRequest(WitConfiguration configuration, string path, bool isServerAuthRequired,
@@ -224,13 +236,14 @@ namespace Meta.WitAi
                 throw new ArgumentException("Configuration is not set.");
             configurationRequired = true;
             this.configuration = configuration;
-            this._timeoutMs = configuration ? configuration.timeoutMS : 10000;
             this.isServerAuthRequired = isServerAuthRequired;
+            this.command = path.Split('/').First();
             this.path = path;
             this.queryParams = queryParams;
-            this.command = path.Split('/').First();
-            this.shouldPost = WitEndpointConfig.GetEndpointConfig(configuration).Speech == this.command ||
-                              WitEndpointConfig.GetEndpointConfig(configuration).Dictation == this.command;
+            if (isServerAuthRequired)
+            {
+                serverToken = WitAuthUtility.GetAppServerToken(configuration?.application?.id);
+            }
         }
 
         public WitRequest(string serverToken, string path, params QueryParam[] queryParams)
@@ -240,10 +253,7 @@ namespace Meta.WitAi
             this.command = path.Split('/').First();
             this.path = path;
             this.queryParams = queryParams;
-            this._timeoutMs = 10000;
-            #if UNITY_EDITOR
-            this.configuration = new WitServerRequestConfiguration(serverToken);
-            #endif
+            this.serverToken = serverToken;
         }
 
         /// <summary>
@@ -262,125 +272,144 @@ namespace Meta.WitAi
         {
             responseStarted = false;
 
-            Dictionary<string, string> requestParams = new Dictionary<string, string>();
-            foreach (var par in queryParams)
+            UriBuilder uriBuilder = new UriBuilder();
+
+            var endpointConfig = WitEndpointConfig.GetEndpointConfig(configuration);
+
+            uriBuilder.Scheme = endpointConfig.UriScheme;
+
+            uriBuilder.Host = endpointConfig.Authority;
+
+            var api = endpointConfig.WitApiVersion;
+            if (endpointConfig.Port > 0)
             {
-                requestParams[par.key] = par.value;
+                uriBuilder.Port = endpointConfig.Port;
             }
-            Func<UriBuilder, Uri> provideUri = (uriBuilder) => onCustomizeUri == null ? uriBuilder.Uri : onCustomizeUri(uriBuilder);
-            WitVRequest.OnProvideCustomUri += provideUri;
-            var uri = WitVRequest.GetWitUri(configuration, path, requestParams);
-            WitVRequest.OnProvideCustomUri -= provideUri;
+
+            uriBuilder.Query = $"v={api}";
+
+            uriBuilder.Path = path;
+
+            callingStackTrace = Environment.StackTrace;
+
+            if (queryParams.Any())
+            {
+                var p = queryParams.Select(par =>
+                    $"{par.key}={Uri.EscapeDataString(par.value)}");
+                uriBuilder.Query += "&" + string.Join("&", p);
+            }
+
+            var uri = null == onCustomizeUri ? uriBuilder.Uri : onCustomizeUri(uriBuilder);
             StartRequest(uri);
         }
 
         private void StartRequest(Uri uri)
         {
-            if (configuration == null && configurationRequired)
+            if (!configuration && configurationRequired)
             {
                 statusDescription = "Configuration is not set. Cannot start request.";
-                VLog.E(statusDescription);
+                Debug.LogError(statusDescription);
                 statusCode = ERROR_CODE_NO_CONFIGURATION;
                 SafeInvoke(onResponse);
                 return;
             }
 
-            if (!isServerAuthRequired && string.IsNullOrEmpty(configuration.GetClientAccessToken()))
+            if (!isServerAuthRequired && string.IsNullOrEmpty(configuration.clientAccessToken))
             {
                 statusDescription = "Client access token is not defined. Cannot start request.";
-                VLog.E(statusDescription);
+                Debug.LogError(statusDescription);
                 statusCode = ERROR_CODE_NO_CLIENT_TOKEN;
                 SafeInvoke(onResponse);
                 return;
             }
 
-            // Get headers
-            Dictionary<string, string> headers = WitVRequest.GetWitHeaders(configuration, isServerAuthRequired);
-            if (!string.IsNullOrEmpty(requestIdOverride))
-            {
-                headers[WitConstants.HEADER_REQUEST_ID] = requestIdOverride;
-            }
-            // Append additional headers
-            if (onProvideCustomHeaders != null)
-            {
-                Dictionary<string, string> customHeaders = onProvideCustomHeaders();
-                if (customHeaders != null)
-                {
-                    foreach (var key in customHeaders.Keys)
-                    {
-                        headers[key] = customHeaders[key];
-                    }
-                }
-            }
-            // Allow overrides
+            //allow app to intercept request and potentially modify uri or add custom headers
+            //NOTE: the callback depends on knowing the original Uri, before it is modified
+            Dictionary<string, string> customHeaders = null;
             if (onPreSendRequest != null)
             {
-                onPreSendRequest(ref uri, out headers);
+                onPreSendRequest(ref uri, out customHeaders);
             }
 
-            #if UNITY_WEBGL
-            StartUnityRequest(uri, headers);
-            #else
-            StartThreadedRequest(uri, headers);
-            #endif
-        }
-
-        private void StartThreadedRequest(Uri uri, Dictionary<string, string> headers)
-        {
             // Create http web request
             _request = WebRequest.Create(uri.AbsoluteUri) as HttpWebRequest;
-
-            if (forcedHttpMethodType != null) {
-                _request.Method = forcedHttpMethodType;
+            if (Application.isBatchMode)
+            {
+                _request.KeepAlive = false;
             }
 
-            #if UNITY_EDITOR
-            // Required for batch mode & to ensure connections close properly
-            _request.KeepAlive = false;
-            #endif
+            if (isServerAuthRequired)
+            {
+                _request.Headers["Authorization"] =
+                    $"Bearer {serverToken}";
+            }
+            else
+            {
+                _request.Headers["Authorization"] =
+                    $"Bearer {configuration.clientAccessToken.Trim()}";
+            }
 
             if (null != postContentType)
             {
-                if (forcedHttpMethodType == null) {
-                    _request.Method = "POST";
-                }
+                _request.Method = "POST";
                 _request.ContentType = postContentType;
                 _request.ContentLength = postData.Length;
             }
 
             // Configure additional headers
-            if (shouldPost)
+            if (WitEndpointConfig.GetEndpointConfig(configuration).Speech == command ||
+                WitEndpointConfig.GetEndpointConfig(configuration).Dictation == command)
             {
-                _request.Method = forcedHttpMethodType == null ? "POST" : forcedHttpMethodType;
                 _request.ContentType = audioEncoding.ToString();
+                _request.Method = "POST";
                 _request.SendChunked = true;
             }
 
+            _request.Headers["X-Wit-Client-Request-Id"] = requestId;
+
             requestRequiresBody = RequestRequiresBody(command);
 
-            // Set user agent
-            if (headers.ContainsKey(WitConstants.HEADER_USERAGENT))
+            var configId = "not-yet-configured";
+#if UNITY_EDITOR
+            if (configuration)
             {
-                _request.UserAgent = headers[WitConstants.HEADER_USERAGENT];
-                headers.Remove(WitConstants.HEADER_USERAGENT);
-            }
-            // Apply all wit headers
-            if (headers != null)
-            {
-                foreach (var key in headers.Keys)
+                if (string.IsNullOrEmpty(configuration.configId))
                 {
-                    _request.Headers[key] = headers[key];
+                    configuration.configId = Guid.NewGuid().ToString();
+                    EditorUtility.SetDirty(configuration);
                 }
+
+                configId = configuration.configId;
             }
+#endif
+
+            _request.UserAgent = GetUserAgent(configuration);
 
             requestStartTime = DateTime.UtcNow;
             isActive = true;
             statusCode = 0;
             statusDescription = "Starting request";
-            _request.Timeout = Timeout;
+            _request.Timeout = configuration ? configuration.timeoutMS : 10000;
             WatchMainThreadCallbacks();
 
-            if (_request.Method == "POST" || _request.Method == "PUT")
+            if (null != onProvideCustomHeaders)
+            {
+                foreach (var header in onProvideCustomHeaders())
+                {
+                    _request.Headers[header.Key] = header.Value;
+                }
+            }
+
+            //apply any modified headers last, as this allows us to overwrite headers if need be
+            if (customHeaders != null)
+            {
+                foreach (var pair in customHeaders)
+                {
+                    _request.Headers[pair.Key] = pair.Value;
+                }
+            }
+
+            if (_request.Method == "POST")
             {
                 var getRequestTask = _request.BeginGetRequestStream(HandleRequestStream, _request);
                 ThreadPool.RegisterWaitForSingleObject(getRequestTask.AsyncWaitHandle,
@@ -392,94 +421,64 @@ namespace Meta.WitAi
             }
         }
 
-        private void StartUnityRequest(Uri uri, Dictionary<string, string> headers)
+        // Get config user agent
+        private static string _operatingSystem;
+        private static string _deviceModel;
+        private static string _appIdentifier;
+        private static string _unityVersion;
+        public static event Func<string> OnProvideCustomUserAgent;
+        public static string GetUserAgent(WitConfiguration configuration)
         {
-            UnityWebRequest request = new UnityWebRequest(uri, UnityWebRequest.kHttpVerbGET);
+            // Setup if needed
+            if (_operatingSystem == null) _operatingSystem = UnityEngine.SystemInfo.operatingSystem;
+            if (_deviceModel == null) _deviceModel = UnityEngine.SystemInfo.deviceModel;
+            if (_appIdentifier == null) _appIdentifier = Application.identifier;
+            if (_unityVersion == null) _unityVersion = Application.unityVersion;
 
-            if (forcedHttpMethodType != null) {
-                request.method = forcedHttpMethodType;
+            // Use config id if found
+            string configId = configuration?.configId;
+
+#if UNITY_EDITOR
+            string userEditor = "Editor";
+            if (configuration != null && string.IsNullOrEmpty(configuration.configId))
+            {
+                configuration.configId = Guid.NewGuid().ToString();
+                UnityEditor.EditorUtility.SetDirty(configuration);
+                UnityEditor.AssetDatabase.SaveAssets();
+                configId = configuration.configId;
+            }
+#else
+            string userEditor = "Runtime";
+#endif
+
+            // If null, set not configured
+            if (string.IsNullOrEmpty(configId))
+            {
+                configId = "not-yet-configured";
             }
 
-            if (null != postContentType)
+            // Append custom user agents
+            string customUserAgents = string.Empty;
+            if (OnProvideCustomUserAgent != null)
             {
-                if (forcedHttpMethodType == null)
+                foreach (Func<string> del in OnProvideCustomUserAgent.GetInvocationList())
                 {
-                    request.method = UnityWebRequest.kHttpVerbPOST;
-                }
-
-                request.uploadHandler = new UploadHandlerRaw(postData);
-                request.uploadHandler.contentType = postContentType;
-            }
-
-            // Configure additional headers
-            if (shouldPost)
-            {
-                request.method = string.IsNullOrEmpty(forcedHttpMethodType) ?
-                    UnityWebRequest.kHttpVerbPOST : forcedHttpMethodType;
-                request.SetRequestHeader("Content-Type", audioEncoding.ToString());
-                request.chunkedTransfer = true;
-            }
-
-            requestRequiresBody = RequestRequiresBody(command);
-
-            // Apply all wit headers
-            foreach (var header in headers)
-            {
-                request.SetRequestHeader(header.Key, header.Value);
-            }
-
-            requestStartTime = DateTime.UtcNow;
-            isActive = true;
-            statusCode = 0;
-            statusDescription = "Starting request";
-            request.timeout = Timeout;
-            request.downloadHandler = new DownloadHandlerBuffer();
-
-            if (request.method == UnityWebRequest.kHttpVerbPOST || request.method == UnityWebRequest.kHttpVerbPUT)
-            {
-                throw new NotImplementedException("Not yet implemented.");
-            }
-
-            VRequest performer = new VRequest();
-            performer.RequestText(request, OnUnityRequestComplete, OnUnityRequestProgress);
-        }
-
-        private void OnUnityRequestProgress(float progress)
-        {
-            VLog.D("Request Progress: " + progress);
-        }
-
-        private void OnUnityRequestComplete(string response, string error)
-        {
-            isActive = false;
-            responseStarted = false;
-            responseData = WitResponseNode.Parse(response);
-            statusCode = string.IsNullOrEmpty(error) ? 200 : 500;
-            statusDescription = error;
-            var responseString = response;
-            responseData = WitResponseNode.Parse(responseString);
-            try
-            {
-                onRawResponse?.Invoke(responseString);
-                onPartialResponse?.Invoke(this);
-                if (!string.IsNullOrEmpty(responseData.GetTranscription()))
-                {
-                    onFullTranscription?.Invoke(responseData.GetTranscription());
+                    string custom = del();
+                    if (!string.IsNullOrEmpty(custom))
+                    {
+                        customUserAgents += $",{custom}";
+                    }
                 }
             }
-            catch (Exception e)
-            {
-                VLog.E("Error parsing response: " + e + "\n" + responseString);
-                statusCode = ERROR_CODE_INVALID_DATA_FROM_SERVER;
-                statusDescription = "Error parsing response: " + e + "\n" + responseString;
-            }
 
-            onResponse?.Invoke(this);
+            // Return full string
+            return $"voice-sdk-47.0.0.188.341,wit-unity-{WIT_SDK_VERSION},{_operatingSystem},{_deviceModel},{configId},{_appIdentifier},{userEditor},{_unityVersion}{customUserAgents}";
         }
 
         private bool RequestRequiresBody(string command)
         {
-            return shouldPost;
+            return command == WitEndpointConfig.GetEndpointConfig(configuration).Speech ||
+                   command == WitEndpointConfig.GetEndpointConfig(configuration).Dictation;
         }
 
         private void StartResponse()
@@ -495,7 +494,7 @@ namespace Meta.WitAi
             // Clean up the current request if it is still going
             if (null != _request)
             {
-                VLog.D("Request timed out after " + (DateTime.UtcNow - requestStartTime));
+                Debug.Log("Request timed out after " + (DateTime.UtcNow - requestStartTime));
                 _request.Abort();
             }
 
@@ -519,6 +518,7 @@ namespace Meta.WitAi
             try
             {
                 WebResponse response = _request.EndGetResponse(asyncResult);
+
                 try
                 {
                     HttpWebResponse httpResponse = response as HttpWebResponse;
@@ -526,51 +526,64 @@ namespace Meta.WitAi
                     statusDescription = httpResponse.StatusDescription;
                     using (var responseStream = httpResponse.GetResponseStream())
                     {
-                        byte[] buffer = new byte[10240];
-                        int bytes = 0;
-                        int offset = 0;
-                        int totalRead = 0;
-                        while ((bytes = responseStream.Read(buffer, offset, buffer.Length - offset)) > 0)
+                        if (response.Headers["Transfer-Encoding"] == "chunked")
                         {
-                            totalRead += bytes;
-                            stringResponse = Encoding.UTF8.GetString(buffer, 0, totalRead);
-                            if (stringResponse.EndsWith(WitConstants.ENDPOINT_JSON_DELIMITER))
+                            byte[] buffer = new byte[10240];
+                            int bytes = 0;
+                            int offset = 0;
+                            int totalRead = 0;
+                            while ((bytes = responseStream.Read(buffer, offset, buffer.Length - offset)) > 0)
                             {
-                                try
+                                totalRead += bytes;
+                                stringResponse = Encoding.UTF8.GetString(buffer, 0, totalRead);
+                                if (stringResponse.EndsWith("\r\n"))
                                 {
-                                    offset = 0;
-                                    totalRead = 0;
-                                    sentResponse |= ProcessStringResponses(stringResponse);
+                                    try
+                                    {
+                                        offset = 0;
+                                        totalRead = 0;
+                                        sentResponse |= ProcessStringResponse(stringResponse);
+                                    }
+                                    catch (JSONParseException e)
+                                    {
+                                        offset = bytes;
+                                        Debug.LogWarning(
+                                            "Received what appears to be a partial response or invalid json. Attempting to continue reading. Parsing error: " +
+                                            e.Message + "\n" + stringResponse);
+                                    }
                                 }
-                                catch (JSONParseException e)
+                                else
                                 {
-                                    offset = bytes;
-                                    VLog.W(
-                                        "Received what appears to be a partial response or invalid json. Attempting to continue reading. Parsing error: " +
-                                        e.Message + "\n" + stringResponse);
+                                    offset = totalRead;
                                 }
                             }
-                            else
-                            {
-                                offset = totalRead;
-                            }
-                    }
 
-                        // If the final transmission didn't end with \r\n process it as the final
-                        if (!stringResponse.EndsWith(WitConstants.ENDPOINT_JSON_DELIMITER) && !string.IsNullOrEmpty(stringResponse))
-                        {
-                            sentResponse |= ProcessStringResponses(stringResponse);
+                            // If the final transmission didn't end with \r\n process it as the final
+                            // result
+                            if (!stringResponse.EndsWith("\r\n") && !string.IsNullOrEmpty(stringResponse))
+                            {
+                                sentResponse |= ProcessStringResponse(stringResponse);
+                            }
+
+                            if (stringResponse.Length > 0 && null != responseData)
+                            {
+                                MainThreadCallback(() => onRawResponse?.Invoke(stringResponse));
+                            }
                         }
-                        // Call raw response
-                        if (stringResponse.Length > 0 && null != responseData)
+                        else
                         {
-                            MainThreadCallback(() => onRawResponse?.Invoke(stringResponse));
+                            using (StreamReader reader = new StreamReader(responseStream))
+                            {
+                                stringResponse = reader.ReadToEnd();
+                                MainThreadCallback(() => onRawResponse?.Invoke(stringResponse));
+                                responseData = WitResponseJson.Parse(stringResponse);
+                            }
                         }
                     }
                 }
                 catch (JSONParseException e)
                 {
-                    VLog.E("Server returned invalid data: " + e.Message + "\n" +
+                    Debug.LogError("Server returned invalid data: " + e.Message + "\n" +
                                    stringResponse);
                     statusCode = ERROR_CODE_INVALID_DATA_FROM_SERVER;
                     statusDescription = "Server returned invalid data.";
@@ -580,7 +593,7 @@ namespace Meta.WitAi
                     // Ensure was not cancelled
                     if (e.Status != WebExceptionStatus.RequestCanceled)
                     {
-                        VLog.E(
+                        Debug.LogError(
                             $"{e.Message}\nRequest Stack Trace:\n{callingStackTrace}\nResponse Stack Trace:\n{e.StackTrace}");
                         statusCode = (int) e.Status;
                         statusDescription = e.Message;
@@ -588,7 +601,7 @@ namespace Meta.WitAi
                 }
                 catch (Exception e)
                 {
-                    VLog.E(
+                    Debug.LogError(
                         $"{e.Message}\nRequest Stack Trace:\n{callingStackTrace}\nResponse Stack Trace:\n{e.StackTrace}");
                     statusCode = ERROR_CODE_GENERAL;
                     statusDescription = e.Message;
@@ -614,7 +627,7 @@ namespace Meta.WitAi
                                 {
                                     stringResponse = errorReader.ReadToEnd();
                                     MainThreadCallback(() => onRawResponse?.Invoke(stringResponse));
-                                    sentResponse = ProcessStringResponses(stringResponse);
+                                    responseData = WitResponseJson.Parse(stringResponse);
                                 }
                             }
                         }
@@ -627,19 +640,15 @@ namespace Meta.WitAi
                     {
                         // We've already caught that there is an error, we'll ignore any errors
                         // reading error response data and use the status/original error for validation
-                        VLog.W(errorResponseError);
+                        Debug.LogWarning(errorResponseError);
                     }
                 }
 
                 statusDescription = e.Message;
                 if (e.Status != WebExceptionStatus.RequestCanceled)
                 {
-                    VLog.E(
+                    Debug.LogError(
                         $"Http Request Failed [{statusCode}]: {e.Message}\nRequest Stack Trace:\n{callingStackTrace}\nResponse Stack Trace:\n{e.StackTrace}");
-                }
-                if (e.Response != null)
-                {
-                    e.Response.Close();
                 }
             }
             finally
@@ -662,16 +671,17 @@ namespace Meta.WitAi
             {
                 statusCode = ERROR_CODE_NO_DATA_FROM_SERVER;
                 statusDescription = "Server did not return a valid json response.";
-                VLog.W("No valid data was received from the server even though the request was successful. Actual potential response data: \n" +
+                Debug.LogWarning(
+                    "No valid data was received from the server even though the request was successful. Actual potential response data: \n" +
                     stringResponse);
             }
 
             // Send final response if have not yet
             if (!sentResponse)
             {
-                // Final transcription if not already sent
+                // Final transcription
                 string transcription = responseData.GetTranscription();
-                if (!string.IsNullOrEmpty(transcription) && !responseData.GetIsFinal())
+                if (!string.IsNullOrEmpty(transcription))
                 {
                     MainThreadCallback(() => onFullTranscription?.Invoke(transcription));
                 }
@@ -682,80 +692,15 @@ namespace Meta.WitAi
             // Complete
             responseStarted = false;
         }
-
-        private string ReadToDelimiter(StreamReader reader, string delimiter)
-        {
-            // Allocate all vars
-            StringBuilder results = new StringBuilder();
-            int delLength = delimiter.Length;
-            int i;
-            bool found;
-            char nextChar;
-
-            // Iterate each byte in the stream
-            while (reader != null && !reader.EndOfStream)
-            {
-                // Continue until found
-                if (reader.Peek() == 0)
-                {
-                    continue;
-                }
-
-                // Append next character
-                nextChar = (char)reader.Read();
-                results.Append(nextChar);
-
-                // Continue until long as delimiter
-                if (results.Length < delLength)
-                {
-                    continue;
-                }
-
-                // Check if string builder ends with delimiter
-                found = true;
-                for (i=0;i<delLength;i++)
-                {
-                    // Stop checking if not delimiter
-                    if (delimiter[i] != results[results.Length - delLength + i])
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-
-                // Found delimiter
-                if (found)
-                {
-                    return results.ToString(0, results.Length - delLength);
-                }
-            }
-
-            // If no delimiter is found, return the rest of the chunk
-            return results.Length == 0 ? null : results.ToString();
-        }
-
-        // Process individual piece
-        private bool ProcessStringResponses(string stringResponse)
-        {
-            // Split by delimiter
-            foreach (var stringPart in stringResponse.Split(new string[]{WitConstants.ENDPOINT_JSON_DELIMITER}, StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (ProcessStringResponse(stringPart))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
         // Safely handles
         private bool ProcessStringResponse(string stringResponse)
         {
             // Decode full response
-            responseData = WitResponseNode.Parse(stringResponse);
+            responseData = WitResponseJson.Parse(stringResponse);
 
             // Handle responses
             bool hasResponse = responseData.HasResponse();
-            bool final = responseData.GetIsFinal();
+            bool final = hasResponse && responseData.GetIsFinal();
 
             // Return transcription
             string transcription = responseData.GetTranscription();
@@ -850,7 +795,7 @@ namespace Meta.WitAi
                     }
                     catch (Exception e)
                     {
-                        VLog.E(e);
+                        Debug.LogError(e);
                     }
                 }
             });
@@ -902,7 +847,7 @@ namespace Meta.WitAi
                     }
                     catch (Exception e)
                     {
-                        VLog.W($"Write Stream - Close Failed\n{e}");
+                        Debug.LogWarning($"Write Stream - Close Failed\n{e}");
                     }
                     _writeStream = null;
                 }
@@ -920,38 +865,32 @@ namespace Meta.WitAi
         /// <param name="length"></param>
         public void Write(byte[] data, int offset, int length)
         {
-            // Ignore without write stream
-            if (_writeStream == null)
-            {
-                return;
-            }
             try
             {
                 _writeStream.Write(data, offset, length);
                 bytesWritten += length;
             }
-            catch (ObjectDisposedException e)
+            catch (ObjectDisposedException)
             {
                 // Handling edge case where stream is closed remotely
                 // This problem occurs when the Web server resets or closes the connection after
                 // the client application sends the HTTP header.
                 // https://support.microsoft.com/en-us/topic/fix-you-receive-a-system-objectdisposedexception-exception-when-you-try-to-access-a-stream-object-that-is-returned-by-the-endgetrequeststream-method-in-the-net-framework-2-0-bccefe57-0a61-517a-5d5f-2dce0cc63265
-                VLog.W("Stream already disposed. It is likely the server reset the connection before streaming started.");
-                // This prevents a very long holdup on _writeStream.Close
-                _writeStream = null;
+                Debug.LogWarning(
+                    "Stream already disposed. It is likely the server reset the connection before streaming started.");
             }
             catch (IOException e)
             {
-                VLog.W(e.Message);
+                Debug.LogWarning(e.Message);
             }
             catch (Exception e)
             {
-                VLog.E(e);
+                Debug.LogError(e);
             }
 
             if (requestRequiresBody && bytesWritten == 0)
             {
-                VLog.W("Stream was closed with no data written. Aborting request.");
+                Debug.LogWarning("Stream was closed with no data written. Aborting request.");
                 AbortRequest();
             }
         }

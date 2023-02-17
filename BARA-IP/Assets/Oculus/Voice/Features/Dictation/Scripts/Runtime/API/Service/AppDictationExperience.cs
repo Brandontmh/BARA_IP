@@ -19,12 +19,12 @@
  */
 
 using System;
-using Meta.WitAi;
-using Meta.WitAi.Json;
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Dictation;
-using Meta.WitAi.Dictation.Data;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Dictation;
+using Facebook.WitAi.Dictation.Data;
+using Facebook.WitAi.Interfaces;
+using Facebook.WitAi.Lib;
 using Oculus.Voice.Dictation.Bindings.Android;
 using Oculus.VoiceSDK.Dictation.Utilities;
 using Oculus.Voice.Core.Bindings.Android.PlatformLogger;
@@ -33,7 +33,7 @@ using UnityEngine;
 
 namespace Oculus.Voice.Dictation
 {
-    public class AppDictationExperience : DictationService, IWitRuntimeConfigProvider
+    public class AppDictationExperience : DictationService
     {
         [SerializeField] private WitDictationRuntimeConfiguration runtimeConfiguration;
         [Tooltip("Uses platform dictation service instead of accessing wit directly from within the application.")]
@@ -41,8 +41,7 @@ namespace Oculus.Voice.Dictation
         [Tooltip("Enables logs related to the interaction to be displayed on console")]
         [SerializeField] private bool enableConsoleLogging;
 
-        public WitRuntimeConfiguration RuntimeConfiguration => runtimeConfiguration;
-        public WitDictationRuntimeConfiguration RuntimeDictationConfiguration
+        public WitDictationRuntimeConfiguration RuntimeConfiguration
         {
             get => runtimeConfiguration;
             set => runtimeConfiguration = value;
@@ -54,8 +53,7 @@ namespace Oculus.Voice.Dictation
         public event Action OnInitialized;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
-        // This version is auto-updated for a release build
-        private readonly string PACKAGE_VERSION = "49.0.0.180.358";
+        private readonly string PACKAGE_VERSION = "47.0.0.188.341";
 #endif
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -90,14 +88,9 @@ namespace Oculus.Voice.Dictation
                 ((PlatformDictationImpl) _dictationServiceImpl).Disconnect();
             }
 #if UNITY_ANDROID && !UNITY_EDITOR
-            // Do not re-init logging if we've already initialized logger
-            if (_voiceSDKLogger == null)
-            {
-                var loggerImpl = new VoiceSDKPlatformLoggerImpl();
-                loggerImpl.Connect(PACKAGE_VERSION);
-                _voiceSDKLogger = loggerImpl;
-            }
-
+            var loggerImpl = new VoiceSDKPlatformLoggerImpl();
+            loggerImpl.Connect(PACKAGE_VERSION);
+            _voiceSDKLogger = loggerImpl;
             if (UsePlatformIntegrations)
             {
                 Debug.Log("Checking platform dictation capabilities...");
@@ -108,8 +101,9 @@ namespace Oculus.Voice.Dictation
                 {
                     _dictationServiceImpl = platformDictationImpl;
                     _dictationServiceImpl.DictationEvents = DictationEvents;
-                    platformDictationImpl.SetDictationRuntimeConfiguration(RuntimeDictationConfiguration);
+                    platformDictationImpl.SetDictationRuntimeConfiguration(RuntimeConfiguration);
                     Debug.Log("Dictation platform init complete");
+                    _voiceSDKLogger.LogAnnotation("isUsingPlatformSupport", "true");
                     _voiceSDKLogger.IsUsingPlatformIntegration = true;
                 }
                 else
@@ -126,7 +120,8 @@ namespace Oculus.Voice.Dictation
             _voiceSDKLogger = new VoiceSDKConsoleLoggerImpl();
             RevertToWitDictation();
 #endif
-            _voiceSDKLogger.WitApplication = RuntimeDictationConfiguration?.witConfiguration?.GetLoggerAppId();
+            _voiceSDKLogger.WitApplication =
+                RuntimeConfiguration?.witConfiguration?.WitApplicationId;
             _voiceSDKLogger.ShouldLogToConsole = enableConsoleLogging;
 
             OnInitialized?.Invoke();
@@ -141,7 +136,7 @@ namespace Oculus.Voice.Dictation
                 witDictation.hideFlags = HideFlags.HideInInspector;
             }
 
-            witDictation.RuntimeConfiguration = RuntimeDictationConfiguration;
+            witDictation.RuntimeConfiguration = this.RuntimeConfiguration;
             witDictation.DictationEvents = DictationEvents;
             _dictationServiceImpl = witDictation;
             Debug.Log("WitDictation init complete");
@@ -181,7 +176,6 @@ namespace Oculus.Voice.Dictation
             }
 #endif
             _dictationServiceImpl = null;
-            _voiceSDKLogger = null;
             DictationEvents.onStart.RemoveListener(OnStarted);
             DictationEvents.onStopped.RemoveListener(OnStopped);
             DictationEvents.onResponse.RemoveListener(OnWitResponseListener);

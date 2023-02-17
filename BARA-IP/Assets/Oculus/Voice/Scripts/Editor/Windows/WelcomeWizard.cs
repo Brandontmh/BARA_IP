@@ -19,10 +19,9 @@
  */
 
 using System.Collections.Generic;
-using Meta.WitAi;
-using Meta.WitAi.Data.Configuration;
-using Meta.WitAi.Windows;
-using Meta.WitAi.Data.Info;
+using Facebook.WitAi;
+using Facebook.WitAi.Data.Configuration;
+using Facebook.WitAi.Windows;
 using Oculus.Voice.Utility;
 using UnityEngine;
 
@@ -93,14 +92,12 @@ namespace Oculus.Voice.Windows
 
             // Generate asset using app data
             WitConfiguration configuration = ScriptableObject.CreateInstance<WitConfiguration>();
-            configuration.SetClientAccessToken(appData["clientToken"]);
-            WitAppInfo application = new WitAppInfo()
-            {
-                name = appData["name"],
-                id = appData["id"],
-                lang = appData["lang"]
-            };
-            configuration.SetApplicationInfo(application);
+            configuration.clientAccessToken = appData["clientToken"];
+            WitApplication application = new WitApplication();
+            application.name = appData["name"];
+            application.id = appData["id"];
+            application.lang = appData["lang"];
+            configuration.application = application;
             configuration.name = application.id;
 
             // Save configuration to asset

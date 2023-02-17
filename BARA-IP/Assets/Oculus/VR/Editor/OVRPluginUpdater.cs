@@ -51,8 +51,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 		Win,
 		Win64,
 		Win64OpenXR,
-		MetaXRSimulator,
-	}
+    }
 	class PluginPackage
 	{
 		public string RootPath;
@@ -275,8 +274,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 				{ PluginPlatform.Win,              rootPath + GetPluginBuildTargetSubPath(PluginPlatform.Win)              },
 				{ PluginPlatform.Win64,            rootPath + GetPluginBuildTargetSubPath(PluginPlatform.Win64)            },
 				{ PluginPlatform.Win64OpenXR,      rootPath + GetPluginBuildTargetSubPath(PluginPlatform.Win64OpenXR)      },
-				{ PluginPlatform.MetaXRSimulator,  rootPath + GetPluginBuildTargetSubPath(PluginPlatform.MetaXRSimulator)  },
-			}
+            }
 		};
 	}
 
@@ -348,10 +346,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 			case PluginPlatform.Win64OpenXR:
 				path = @"/Win64OpenXR/OVRPlugin.dll";
 				break;
-			case PluginPlatform.MetaXRSimulator:
-				path = @"/MetaXRSimulator/SIMULATOR.dll";
-				break;
-			default:
+            default:
 				throw new ArgumentException("Attempted GetPluginBuildTargetSubPath() for unsupported BuildTarget: " + target);
 		}
 
@@ -405,19 +400,6 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 	{
 		bool isVersionValid = (version != invalidVersion);
 		return isVersionValid ? version.ToString() : "(Unknown)";
-	}
-
-	public static string GetEnabledUtilsPluginRootPath()
-	{
-		PluginPackage package = GetEnabledUtilsPluginPkg();
-		if (package == null)
-		{
-			return null;
-		}
-		else
-		{
-			return package.RootPath;
-		}
 	}
 
 	private static bool ShouldAttemptPluginUpdate()
@@ -592,10 +574,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 							pi.SetPlatformData("Editor", "OS", "Windows");
 						}
 						break;
-					case PluginPlatform.MetaXRSimulator:
-						// not enable for any platform
-						break;
-					default:
+                    default:
 						throw new ArgumentException("Attempted EnablePluginPackage() for unsupported BuildTarget: " + platform);
 				}
 
@@ -1064,7 +1043,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 		}
 	}
 
-	public static bool IsOVRPluginLegacyAPIActivated()
+    public static bool IsOVRPluginLegacyAPIActivated()
 	{
 		PluginPackage enabledUtilsPluginPkg = GetEnabledUtilsPluginPkg();
 
@@ -1076,7 +1055,7 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 		return enabledUtilsPluginPkg.IsAndroidUniversalEnabled();
 	}
 
-	// Separate entry point needed since "-executeMethod" does not support parameters or default parameter values
+    // Separate entry point needed since "-executeMethod" does not support parameters or default parameter values
 	private static void BatchmodePluginUpdate()
 	{
 		OnDelayCall(); // manually invoke when running editor in batchmode
@@ -1254,29 +1233,29 @@ public class OVRPluginUpdater : IOVRPluginInfoSupplier
 		}
 	}
 
-	#region IOVRPluginInfoSupplier Implementation
+    #region IOVRPluginInfoSupplier Implementation
 
-	// Test if the OVRPlugin/OpenXR plugin is currently activated, used by other editor utilities
-	public bool IsOVRPluginOpenXRActivated() => IsOVRPluginOpenXRActivatedInternal();
+    // Test if the OVRPlugin/OpenXR plugin is currently activated, used by other editor utilities
+    public bool IsOVRPluginOpenXRActivated() => IsOVRPluginOpenXRActivatedInternal();
 
-	private static bool IsOVRPluginOpenXRActivatedInternal()
-	{
-		if (!unityVersionSupportsAndroidUniversal) // sanity check
-		{
-			return false;
-		}
+    private static bool IsOVRPluginOpenXRActivatedInternal()
+    {
+        if (!unityVersionSupportsAndroidUniversal) // sanity check
+        {
+            return false;
+        }
 
-		PluginPackage enabledUtilsPluginPkg = GetEnabledUtilsPluginPkg();
-		return enabledUtilsPluginPkg != null && enabledUtilsPluginPkg.IsAndroidOpenXREnabled();
-	}
+        PluginPackage enabledUtilsPluginPkg = GetEnabledUtilsPluginPkg();
+        return enabledUtilsPluginPkg != null && enabledUtilsPluginPkg.IsAndroidOpenXREnabled();
+    }
 
-	public bool IsOVRPluginUnityProvidedActivated()
-	{
-		PluginPackage enabledUtilsPluginPkg = GetEnabledUtilsPluginPkg();
-		return enabledUtilsPluginPkg != null && enabledUtilsPluginPkg.IsBundledPluginPackage();
-	}
+    public bool IsOVRPluginUnityProvidedActivated()
+    {
+        PluginPackage enabledUtilsPluginPkg = GetEnabledUtilsPluginPkg();
+        return enabledUtilsPluginPkg != null && enabledUtilsPluginPkg.IsBundledPluginPackage();
+    }
 
-	#endregion
+    #endregion
 }
 
 #endif

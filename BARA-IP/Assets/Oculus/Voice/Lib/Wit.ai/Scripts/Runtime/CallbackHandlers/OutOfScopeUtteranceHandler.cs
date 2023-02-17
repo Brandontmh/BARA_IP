@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.WitAi.Json;
+using Facebook.WitAi.Lib;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Meta.WitAi.CallbackHandlers
+namespace Facebook.WitAi.CallbackHandlers
 {
     /// <summary>
     /// Triggers an event when no intents were recognized in an utterance.
@@ -20,22 +20,14 @@ namespace Meta.WitAi.CallbackHandlers
     {
         [SerializeField] private UnityEvent onOutOfDomain = new UnityEvent();
 
-        protected override string OnValidateResponse(WitResponseNode response, bool isEarlyResponse)
+        protected override void OnHandleResponse(WitResponseNode response)
         {
-            if (response == null)
+            if (null == response) return;
+
+            if (response["intents"].Count == 0)
             {
-                return "Response is null";
+                onOutOfDomain?.Invoke();
             }
-            if (response["intents"].Count > 0)
-            {
-                return "Intents found";
-            }
-            return string.Empty;
-        }
-        protected override void OnResponseInvalid(WitResponseNode response, string error) {}
-        protected override void OnResponseSuccess(WitResponseNode response)
-        {
-            onOutOfDomain?.Invoke();
         }
     }
 }

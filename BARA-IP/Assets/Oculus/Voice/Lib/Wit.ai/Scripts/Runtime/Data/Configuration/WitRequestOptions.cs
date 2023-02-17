@@ -9,10 +9,10 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi.Interfaces;
 using UnityEngine;
 
-namespace Meta.WitAi.Configuration
+namespace Facebook.WitAi.Configuration
 {
     public class WitRequestOptions
     {

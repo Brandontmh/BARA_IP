@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 
-
 using System;
 using UnityEngine;
 using System.Collections.Generic;
@@ -324,38 +323,10 @@ public class OVRSceneManager : MonoBehaviour
     /// Requests scene capture from the Guardian.
     /// </summary>
     /// <returns>Returns true if scene capture succeeded, otherwise false.</returns>
-    public bool RequestSceneCapture() => RequestSceneCapture("");
-
-    /// <summary>
-    /// Requests scene capture with specified types of <see cref="OVRSceneAnchor"/> from the Guardian.
-    /// </summary>
-    /// <param name="requestedAnchorClassifications">A list of <see cref="OVRSceneManager.Classification"/>.</param>
-    /// <returns>Returns true if scene capture succeeded, otherwise false.</returns>
-    public bool RequestSceneCapture(IEnumerable<string> requestedAnchorClassifications)
-    {
-        if(requestedAnchorClassifications == null)
-        {
-            throw new ArgumentNullException(nameof(requestedAnchorClassifications));
-        }
-
-        var anchorClassifications = requestedAnchorClassifications.ToList();
-        foreach (var classification in anchorClassifications)
-        {
-            if (!Classification.List.Contains(classification))
-            {
-                throw new ArgumentException(
-                    $"{nameof(requestedAnchorClassifications)} contains invalid anchor {nameof(Classification)} {nameof(classification)}.");
-            }
-        }
-
-        return RequestSceneCapture(String.Join(",", anchorClassifications));
-    }
-
-    #region Private Methods
-
-    private bool RequestSceneCapture(string requestString)
+    public bool RequestSceneCapture()
     {
 #if !UNITY_EDITOR
+        var requestString = "";
         return OVRPlugin.RequestSceneCapture(requestString, out _sceneCaptureRequestId);
 #elif UNITY_EDITOR_WIN
         Development.LogWarning(nameof(OVRSceneManager),
@@ -365,6 +336,8 @@ public class OVRSceneManager : MonoBehaviour
         return false;
 #endif
     }
+
+    #region Private Methods
 
     private void OnEnable()
     {
@@ -437,7 +410,6 @@ public class OVRSceneManager : MonoBehaviour
             if (_currentQueryMode == QueryMode.QueryAllRoomLayoutEnabledForAllEntitiesInside ||
                 _currentQueryMode == QueryMode.QueryAllRoomLayoutEnabledForRoomBox)
             {
-                options.MaxResults = 1;
                 options.ComponentFilter = OVRSpaceQuery.ComponentType.RoomLayout;
             }
             else
@@ -563,10 +535,6 @@ public class OVRSceneManager : MonoBehaviour
         var plane = sceneAnchor.GetComponent<OVRScenePlane>();
         if (plane)
         {
-            if (RoomLayout == null)
-            {
-                RoomLayout = new RoomLayoutInformation();
-            }
             // Populate RoomLayoutInformation
             foreach (var label in labels)
             {
@@ -814,4 +782,3 @@ public class OVRSceneManager : MonoBehaviour
 
     #endregion
 }
-

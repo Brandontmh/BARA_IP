@@ -9,7 +9,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 
-namespace Meta.WitAi.Utilities
+namespace Facebook.WitAi.Utilities
 {
     public static class AssetDatabaseUtility
     {

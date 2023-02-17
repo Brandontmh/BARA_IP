@@ -10,11 +10,11 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Serialization;
-using Meta.WitAi.TTS.Data;
-using Meta.WitAi.TTS.Interfaces;
-using Meta.WitAi.TTS.Events;
+using Facebook.WitAi.TTS.Data;
+using Facebook.WitAi.TTS.Interfaces;
+using Facebook.WitAi.TTS.Events;
 
-namespace Meta.WitAi.TTS.Integrations
+namespace Facebook.WitAi.TTS.Integrations
 {
     // A simple LRU Cache
     public class TTSRuntimeCache : MonoBehaviour, ITTSRuntimeCacheHandler

@@ -7,10 +7,10 @@
  */
 
 using System;
-using Meta.WitAi.Configuration;
+using Facebook.WitAi.Configuration;
 using UnityEngine.Events;
 
-namespace Meta.WitAi.Events
+namespace Facebook.WitAi.Events
 {
     [Serializable]
     public class WitRequestOptionsEvent : UnityEvent<WitRequestOptions>

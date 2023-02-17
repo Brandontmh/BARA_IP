@@ -12,13 +12,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using Meta.WitAi.Configuration;
-using Meta.WitAi.Data;
-using Meta.WitAi.Events;
-using Meta.WitAi.Interfaces;
+using Facebook.WitAi.Configuration;
+using Facebook.WitAi.Data;
+using Facebook.WitAi.Events;
+using Facebook.WitAi.Interfaces;
 using UnityEngine.Events;
 
-namespace Meta.WitAi
+namespace Facebook.WitAi
 {
     public class WitService : MonoBehaviour, IWitRuntimeConfigProvider, IVoiceEventProvider
     {
@@ -51,7 +51,6 @@ namespace Meta.WitAi
         private IWitByteDataReadyHandler[] _dataReadyHandlers;
         private IWitByteDataSentHandler[] _dataSentHandlers;
         private IDynamicEntitiesProvider[] _dynamicEntityProviders;
-        private float _time;
 
         #endregion
 
@@ -154,55 +153,17 @@ namespace Meta.WitAi
                 TranscriptionProvider = RuntimeConfiguration.customTranscriptionProvider;
             }
 
-            SetMicDelegates(true);
+            AudioBuffer.Instance.Events.OnMicLevelChanged.AddListener(OnMicLevelChanged);
+            AudioBuffer.Instance.Events.OnByteDataReady.AddListener(OnByteDataReady);
+            AudioBuffer.Instance.Events.OnSampleReady += OnMicSampleReady;
 
             _dynamicEntityProviders = GetComponents<IDynamicEntitiesProvider>();
         }
-        // Remove mic delegates
+
         protected void OnDisable()
         {
             AudioBufferEvents e = AudioBuffer.Instance?.Events;
-            SetMicDelegates(false);
-        }
-        // On scene refresh
-        protected virtual void OnLevelWasLoaded(int level)
-        {
-            SetMicDelegates(true);
-        }
-        // Toggle audio events
-        private AudioBuffer _buffer;
-        private bool _bufferDelegates = false;
-        protected void SetMicDelegates(bool add)
-        {
-            // Obtain buffer
-            if (_buffer == null)
-            {
-                _buffer = AudioBuffer.Instance;
-                _bufferDelegates = false;
-            }
-            // Get events if possible
-            AudioBufferEvents e = _buffer?.Events;
-            if (e == null)
-            {
-                return;
-            }
-            // Already set
-            if (_bufferDelegates == add)
-            {
-                return;
-            }
-            // Set delegates
-            _bufferDelegates = add;
-
-            // Add delegates
-            if (add)
-            {
-                e.OnMicLevelChanged.AddListener(OnMicLevelChanged);
-                e.OnByteDataReady.AddListener(OnByteDataReady);
-                e.OnSampleReady += OnMicSampleReady;
-            }
-            // Remove delegates
-            else
+            if (e != null)
             {
                 e.OnMicLevelChanged.RemoveListener(OnMicLevelChanged);
                 e.OnByteDataReady.RemoveListener(OnByteDataReady);
@@ -220,7 +181,7 @@ namespace Meta.WitAi
         {
             if (!IsConfigurationValid())
             {
-                VLog.E($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
+                Debug.LogError($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
                 return;
             }
             if (_isActive) return;
@@ -249,7 +210,7 @@ namespace Meta.WitAi
         {
             if (!IsConfigurationValid())
             {
-                VLog.E($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
+                Debug.LogError($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
                 return;
             }
             // Make sure we aren't checking activation time until
@@ -266,7 +227,7 @@ namespace Meta.WitAi
             if (ShouldSendMicData)
             {
                 _recordingRequest = WitRequestProvider != null ? WitRequestProvider.CreateWitRequest(RuntimeConfiguration.witConfiguration, requestOptions, _dynamicEntityProviders)
-                    : RuntimeConfiguration.witConfiguration.CreateSpeechRequest(requestOptions, _dynamicEntityProviders);
+                    : RuntimeConfiguration.witConfiguration.SpeechRequest(requestOptions, _dynamicEntityProviders);
                 _recordingRequest.audioEncoding = AudioBuffer.Instance.AudioEncoding;
                 _recordingRequest.onPartialTranscription = OnPartialTranscription;
                 _recordingRequest.onFullTranscription = OnFullTranscription;
@@ -289,7 +250,7 @@ namespace Meta.WitAi
             {
                 var file = Application.dataPath + "/test.pcm";
                 sampleFile = File.Open(file, FileMode.Create);
-                VLog.D("Writing recording to file: " + file);
+                Debug.Log("Writing recording to file: " + file);
             }
 #endif
             _lastSampleMarker = AudioBuffer.Instance.CreateMarker(ConfigurationProvider
@@ -305,7 +266,7 @@ namespace Meta.WitAi
         {
             if (!IsConfigurationValid())
             {
-                VLog.E($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
+                Debug.LogError($"Your AppVoiceExperience \"{gameObject.name}\" does not have a wit config assigned. Understanding Viewer activations will not trigger in game events..");
                 return;
             }
 
@@ -321,7 +282,7 @@ namespace Meta.WitAi
         public virtual bool IsConfigurationValid()
         {
             return RuntimeConfiguration.witConfiguration != null &&
-                   !string.IsNullOrEmpty(RuntimeConfiguration.witConfiguration.GetClientAccessToken());
+                   !string.IsNullOrEmpty(RuntimeConfiguration.witConfiguration.clientAccessToken);
         }
         #endregion
 
@@ -336,7 +297,7 @@ namespace Meta.WitAi
 #if DEBUG_SAMPLE
             if (null != sampleFile)
             {
-                VLog.D($"Wrote test samples to {Application.dataPath}/test.pcm");
+                Debug.Log($"Wrote test samples to {Application.dataPath}/test.pcm");
                 sampleFile?.Close();
                 sampleFile = null;
             }
@@ -345,7 +306,7 @@ namespace Meta.WitAi
         // When wit is ready, start recording
         private void OnWitReadyForData()
         {
-            _lastMinVolumeLevelTime = _time;
+            _lastMinVolumeLevelTime = Time.time;
             if (!AudioBuffer.Instance.IsRecording(this))
             {
                 StartRecording();
@@ -427,23 +388,18 @@ namespace Meta.WitAi
 
                 if (_receivedTranscription)
                 {
-                    float elapsed = _time - _lastWordTime;
-                    if (elapsed >
+                    if (Time.time - _lastWordTime >
                         RuntimeConfiguration.minTranscriptionKeepAliveTimeInSeconds)
                     {
-                        VLog.D($"Deactivated due to inactivity. No new words detected in {elapsed:0.00} seconds.");
+                        Debug.Log("Deactivated due to inactivity. No new words detected.");
                         DeactivateRequest(VoiceEvents?.OnStoppedListeningDueToInactivity);
                     }
                 }
-                else
+                else if (Time.time - _lastMinVolumeLevelTime >
+                         RuntimeConfiguration.minKeepAliveTimeInSeconds)
                 {
-                    float elapsed = _time - _lastMinVolumeLevelTime;
-                    if (elapsed >
-                        RuntimeConfiguration.minKeepAliveTimeInSeconds)
-                    {
-                        VLog.D($"Deactivated due to inactivity. No sound detected in {elapsed:0.00} seconds.");
-                        DeactivateRequest(VoiceEvents?.OnStoppedListeningDueToInactivity);
-                    }
+                    Debug.Log("Deactivated input due to inactivity.");
+                    DeactivateRequest(VoiceEvents?.OnStoppedListeningDueToInactivity);
                 }
             }
             else if (_isSoundWakeActive && levelMax > RuntimeConfiguration.soundWakeThreshold)
@@ -454,12 +410,6 @@ namespace Meta.WitAi
                 _lastSampleMarker.Offset(RuntimeConfiguration.sampleLengthInMs * -2);
             }
         }
-
-        private void Update()
-        {
-            _time = Time.time;
-        }
-
         // Mic level change
         private void OnMicLevelChanged(float level)
         {
@@ -467,7 +417,7 @@ namespace Meta.WitAi
 
             if (level > RuntimeConfiguration.minKeepAliveVolume)
             {
-                _lastMinVolumeLevelTime = _time;
+                _lastMinVolumeLevelTime = Time.time;
                 _minKeepAliveWasHit = true;
             }
             VoiceEvents?.OnMicLevelChanged?.Invoke(level);
@@ -504,7 +454,7 @@ namespace Meta.WitAi
             yield return new WaitForSeconds(RuntimeConfiguration.maxRecordingTime);
             if (IsRequestActive)
             {
-                VLog.D($"Deactivated input due to timeout.\nMax Record Time: {RuntimeConfiguration.maxRecordingTime}");
+                Debug.Log($"Deactivated input due to timeout.\nMax Record Time: {RuntimeConfiguration.maxRecordingTime}");
                 DeactivateRequest(VoiceEvents?.OnStoppedListeningDueToTimeout, false);
             }
         }
@@ -576,12 +526,14 @@ namespace Meta.WitAi
         {
             // Clear record data
             _receivedTranscription = true;
-            _lastWordTime = _time;
+            _lastWordTime = Time.time;
             // Delegate
             VoiceEvents?.OnPartialTranscription.Invoke(transcription);
         }
         private void OnFullTranscription(string transcription)
         {
+            // End existing request
+            DeactivateRequest(null);
             // Delegate
             VoiceEvents?.OnFullTranscription?.Invoke(transcription);
             // Send transcription
@@ -593,7 +545,7 @@ namespace Meta.WitAi
         private void SendTranscription(string transcription, WitRequestOptions requestOptions)
         {
             // Create request & add response delegate
-            WitRequest request = RuntimeConfiguration.witConfiguration.CreateMessageRequest(transcription, requestOptions, _dynamicEntityProviders);
+            WitRequest request = RuntimeConfiguration.witConfiguration.MessageRequest(transcription, requestOptions, _dynamicEntityProviders);
             request.onResponse += HandleResult;
             request.onPartialResponse += HandlePartialResult;
 

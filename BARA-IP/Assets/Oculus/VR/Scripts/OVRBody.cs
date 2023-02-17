@@ -28,6 +28,7 @@ using UnityEngine;
 /// Typically, you would use this in conjunction with an <see cref="OVRSkeleton"/> and/or
 /// <see cref="OVRSkeletonRenderer"/>.
 /// </remarks>
+[DefaultExecutionOrder(-90)]
 public class OVRBody : MonoBehaviour,
     OVRSkeleton.IOVRSkeletonDataProvider,
     OVRSkeletonRenderer.IOVRSkeletonRendererDataProvider

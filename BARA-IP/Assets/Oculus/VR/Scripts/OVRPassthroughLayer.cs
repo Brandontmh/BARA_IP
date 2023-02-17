@@ -238,7 +238,6 @@ public class OVRPassthroughLayer : MonoBehaviour
         styleDirty = true;
     }
 
-
     /// <summary>
     /// This method allows to generate (and apply) a color map from the set of controls which is also available in
     /// inspector.
@@ -596,15 +595,11 @@ public class OVRPassthroughLayer : MonoBehaviour
         }
     }
 
-    private void AllocateColorMapData(uint size = 4096)
+    private void AllocateColorMapData()
     {
-        if (colorMapData != null && size != colorMapData.Length) {
-            DeallocateColorMapData();
-        }
-
         if (colorMapData == null)
         {
-            colorMapData = new byte[size];
+            colorMapData = new byte[4096];
             if (colorMapDataHandle.IsAllocated)
             {
                 Debug.LogWarning("Passthrough color map data handle is not expected to be allocated at time of buffer allocation");
@@ -730,7 +725,6 @@ public class OVRPassthroughLayer : MonoBehaviour
             Buffer.BlockCopy(bytes, 0, colorMapData, colorIndex * 16 + c * 4, 4);
         }
     }
-
 
     private void WriteFloatToColorMap(int index, float value)
     {

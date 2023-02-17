@@ -7,11 +7,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using UnityEngine;
-using Meta.WitAi.Data.Configuration;
+using Facebook.WitAi.Data.Configuration;
 
-namespace Meta.WitAi.Windows
+namespace Facebook.WitAi.Windows
 {
     public abstract class WitConfigurationWindow : BaseWitWindow
     {
@@ -23,12 +22,7 @@ namespace Meta.WitAi.Windows
         {
             get
             {
-                if (witConfiguration == null)
-                {
-                    return "";
-                }
-
-                string appID = witConfiguration.GetApplicationId();
+                string appID = WitConfigurationUtility.GetAppID(witConfiguration);
                 if (!string.IsNullOrEmpty(appID))
                 {
                     return WitTexts.GetAppURL(appID, HeaderEndpointType);
@@ -62,40 +56,13 @@ namespace Meta.WitAi.Windows
 
             // Layout popup
             int index = witConfigIndex;
-            WitConfigurationEditorUI.LayoutConfigurationSelect(ref index, OpenConfigGenerationWindow);
+            WitConfigurationEditorUI.LayoutConfigurationSelect(ref index);
             GUILayout.Space(WitStyles.ButtonMargin);
             // Selection changed
             if (index != witConfigIndex)
             {
                 SetConfiguration(index);
             }
-        }
-        // Generate new configuration via setup
-        protected virtual void OpenConfigGenerationWindow()
-        {
-            WitWindowUtility.OpenSetupWindow(OnConfigGenerated);
-        }
-        // On configuration generated
-        protected virtual void OnConfigGenerated(WitConfiguration newConfiguration)
-        {
-            // Apply to this settings window
-            if (newConfiguration != null)
-            {
-                // Get index if possible
-                List<WitConfiguration> configs = new List<WitConfiguration>(WitConfigurationUtility.WitConfigs);
-                int newIndex = configs.IndexOf(newConfiguration);
-                if (newIndex != -1)
-                {
-                    // Apply configuration
-                    SetConfiguration(newIndex);
-
-                    // Refresh app info
-                    newConfiguration.RefreshAppInfo();
-                }
-            }
-
-            // Open this window if needed
-            WitWindowUtility.OpenConfigurationWindow();
         }
     }
 }

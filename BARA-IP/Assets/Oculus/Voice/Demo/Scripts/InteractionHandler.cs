@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 
-using Meta.WitAi;
-using Meta.WitAi.Json;
+using Facebook.WitAi;
+using Facebook.WitAi.Lib;
 using UnityEngine;
 using UnityEngine.UI;
 

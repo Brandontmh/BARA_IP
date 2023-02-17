@@ -9,7 +9,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Meta.WitAi.Inspectors
+namespace Facebook.WitAi.Inspectors
 {
     public class WitInspector : Editor
     {

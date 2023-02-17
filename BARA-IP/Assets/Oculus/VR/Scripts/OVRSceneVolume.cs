@@ -51,34 +51,9 @@ public class OVRSceneVolume : MonoBehaviour, IOVRSceneComponent
 	/// </remarks>
 	public Vector3 Dimensions => new Vector3(Width, Height, Depth);
 
-	/// <summary>
-	/// Whether the child transforms will be scaled according to the dimensions of this volume.
-	/// </summary>
-	/// <remarks>If set to True, all the child transforms will be scaled to the dimensions of this volume immediately.
-	/// And, if it's set to False, dimensions of this volume will no longer affect the child transforms, and child
-	/// transforms will retain their current scale.</remarks>
-	public bool ScaleChildren
-	{
-		get => _scaleChildren;
-		set {
-			_scaleChildren = value;
-			if(_scaleChildren && _sceneAnchor.Space.Valid)
-			{
-				SetChildScale(transform, Dimensions);
-			}
-		}
-	}
-
-	[Tooltip("When enabled, scales the child transforms according to the dimensions of this volume")]
-	[SerializeField]
-	private bool _scaleChildren = true;
-
-	private OVRSceneAnchor _sceneAnchor;
-
 	private void Awake()
 	{
-		_sceneAnchor = GetComponent<OVRSceneAnchor>();
-		if (_sceneAnchor.Space.Valid)
+		if (GetComponent<OVRSceneAnchor>().Space.Valid)
 		{
 			((IOVRSceneComponent)this).Initialize();
 		}
@@ -86,7 +61,7 @@ public class OVRSceneVolume : MonoBehaviour, IOVRSceneComponent
 
 	void IOVRSceneComponent.Initialize()
 	{
-		if (OVRPlugin.GetSpaceBoundingBox3D(_sceneAnchor.Space, out var bounds))
+		if (OVRPlugin.GetSpaceBoundingBox3D(GetComponent<OVRSceneAnchor>().Space, out var bounds))
 		{
 			Width = bounds.Size.w;
 			Height = bounds.Size.h;
@@ -94,25 +69,18 @@ public class OVRSceneVolume : MonoBehaviour, IOVRSceneComponent
 
 			var dimensions = Dimensions;
 			OVRSceneManager.Development.Log(nameof(OVRSceneVolume),
-				$"[{_sceneAnchor.Uuid}] Volume has dimensions {dimensions}.");
+				$"[{GetComponent<OVRSceneAnchor>().Uuid}] Volume has dimensions {dimensions}.");
 
-			if (ScaleChildren)
+			var parentTransform = transform;
+			for (var i = 0; i < parentTransform.childCount; i++)
 			{
-				SetChildScale(transform, dimensions);
+				parentTransform.GetChild(i).localScale = dimensions;
 			}
 		}
 		else
 		{
 			OVRSceneManager.Development.LogError(nameof(OVRSceneVolume),
-				$"[{_sceneAnchor.Space}] Failed to retrieve volume's dimensions.");
-		}
-	}
-
-	private static void SetChildScale(Transform parentTransform, Vector3 dimensions)
-	{
-		for (var i = 0; i < parentTransform.childCount; i++)
-		{
-			parentTransform.GetChild(i).localScale = dimensions;
+				$"[{GetComponent<OVRSceneAnchor>().Space}] Failed to retrieve volume's dimensions.");
 		}
 	}
 }

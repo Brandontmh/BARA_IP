@@ -18,7 +18,6 @@
  * limitations under the License.
  */
 
-
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -209,11 +208,6 @@ public sealed class OVRSceneAnchor : MonoBehaviour
         // Anchor destroyed. Adding it to an ignore list.
         DestroyedSceneAnchors.Add(this.Uuid);
 
-        if (!Space.Valid)
-        {
-            return;
-        }
-
         if (!AnchorReferenceCountDictionary.TryGetValue(Space, out var referenceCount))
         {
             OVRSceneManager.Development.LogError(nameof(OVRSceneAnchor),
@@ -250,4 +244,3 @@ internal interface IOVRSceneComponent
 {
     void Initialize();
 }
-
