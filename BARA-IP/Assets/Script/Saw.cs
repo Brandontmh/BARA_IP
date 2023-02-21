@@ -16,13 +16,15 @@ public class Saw : MonoBehaviour
     public float currentTime = 0f;
     private float totalTime;
 
-    private bool legTimerActive = true;
-    private bool seatTimerActive = false;
-    private bool backTimerActive = false;
-    private bool totalTimerActive = true;
+    public AudioSource sawSound;
+
+    private bool legTimerActive;
+    private bool seatTimerActive;
+    private bool backTimerActive;
+    private bool totalTimerActive;
 
 
-    private void Awake()
+    private void Start()
     {
         currentTime = 0f;
         totalTimerActive = true;
@@ -35,13 +37,14 @@ public class Saw : MonoBehaviour
 
     private void Update()
     {
-        if(totalTimerActive = true)
+        if(totalTimerActive == true)
         {
             totalTime += Time.deltaTime;
-            totalTimer.text = totalTime.ToString("F2") + " seconds";
+            totalTimer.text = "Total Time " + totalTime.ToString("F2") + " seconds";
         }
+        
 
-        if (legTimerActive = true)
+        if (legTimerActive == true)
         {
             currentTime = currentTime + Time.deltaTime;
 
@@ -50,7 +53,7 @@ public class Saw : MonoBehaviour
 
         }
 
-        else if (seatTimerActive = true)
+        else if (seatTimerActive == true)
         {
             currentTime = currentTime + Time.deltaTime;
 
@@ -59,7 +62,7 @@ public class Saw : MonoBehaviour
 
         }
 
-        else if (backTimerActive = true)
+        else if (backTimerActive == true)
         {
             currentTime = currentTime + Time.deltaTime;
 
@@ -93,12 +96,14 @@ public class Saw : MonoBehaviour
             Debug.Log("Collided with " + other);
 
             StartCoroutine(waiter());
+            sawSound.Play();
 
             IEnumerator waiter()
             {
                 yield return new WaitForSeconds(5);
                 Debug.Log("waiting");
                 Destroy(other.gameObject);
+                sawSound.Stop();
                 logExist = true;
                 Debug.Log("logExist is false");
                 chair[0].SetActive(true);
@@ -106,9 +111,11 @@ public class Saw : MonoBehaviour
                 chair[2].SetActive(true);
                 chair[3].SetActive(true);
                 legTimerActive = false;
-                currentTime = 0f;
                 seatTimerActive = true;
+                Debug.Log(legTimerActive);
                 Debug.Log(seatTimerActive);
+                currentTime = 0f;
+                
             }
         }
 
@@ -116,6 +123,7 @@ public class Saw : MonoBehaviour
         //It will destory the log and the seat of the chair will appear.
         else if (other.tag == "LogChairSeat" && logExist == true && legTimerActive == false)
         {
+            sawSound.Play();
             logExist = false;
             Debug.Log("logExist is true");
             Debug.Log("Collided with " + other);
@@ -127,6 +135,7 @@ public class Saw : MonoBehaviour
                 yield return new WaitForSeconds(5);
                 Debug.Log("waiting");
                 Destroy(other.gameObject);
+                sawSound.Stop();
                 logExist = true;
                 Debug.Log("logExist is false");
                 chair[4].SetActive(true);
@@ -140,6 +149,7 @@ public class Saw : MonoBehaviour
         //It will destory the log and the backrest of the chair will appear.
         else if (other.tag == "LegChairRest" && logExist == true && seatTimerActive == false && legTimerActive == false)
         {
+            sawSound.Play();
             logExist = false;
             Debug.Log("logExist is true");
             Debug.Log("Collided with " + other);
@@ -151,6 +161,7 @@ public class Saw : MonoBehaviour
                 yield return new WaitForSeconds(5);
                 Debug.Log("waiting");
                 Destroy(other.gameObject);
+                sawSound.Stop();
                 logExist = true;
                 Debug.Log("logExist is false");
                 chair[5].SetActive(true);
