@@ -12,16 +12,20 @@ public class Saw : MonoBehaviour
     public TextMeshProUGUI legTimer;
     public TextMeshProUGUI seatTimer;
     public TextMeshProUGUI backTimer;
+    public TextMeshProUGUI totalTimer;
     public float currentTime = 0f;
+    private float totalTime;
 
     private bool legTimerActive = true;
     private bool seatTimerActive = false;
     private bool backTimerActive = false;
+    private bool totalTimerActive = true;
 
 
     private void Awake()
     {
         currentTime = 0f;
+        totalTimerActive = true;
         legTimerActive = true;
         seatTimerActive = false;
         backTimerActive = false;
@@ -31,6 +35,11 @@ public class Saw : MonoBehaviour
 
     private void Update()
     {
+        if(totalTimerActive = true)
+        {
+            totalTime += Time.deltaTime;
+            totalTimer.text = totalTime.ToString("F2") + " seconds";
+        }
 
         if (legTimerActive = true)
         {
@@ -60,12 +69,14 @@ public class Saw : MonoBehaviour
         }
 
         if (logExist == false)
-        {
+        {   
+            //Play VFX
             dustParticle.Play();
         }
 
         else
-        {
+        {   
+            //Stop VFX
             dustParticle.Stop();
         }
 
@@ -73,6 +84,8 @@ public class Saw : MonoBehaviour
 
     public void OnTriggerEnter(Collider other)
     {
+        //When the saw collide with the log that is for the leg of the chair
+        //It will destory the log and the leg of the chair will appear.
         if (other.tag == "LogChairLeg" && logExist == true)
         {
             logExist = false;
@@ -98,7 +111,10 @@ public class Saw : MonoBehaviour
                 Debug.Log(seatTimerActive);
             }
         }
-        else if (other.tag == "LogChairSeat" && logExist == true)
+
+        //When the saw collide with the log that is for the seat of the chair
+        //It will destory the log and the seat of the chair will appear.
+        else if (other.tag == "LogChairSeat" && logExist == true && legTimerActive == false)
         {
             logExist = false;
             Debug.Log("logExist is true");
@@ -119,7 +135,10 @@ public class Saw : MonoBehaviour
                 backTimerActive = true;
             }
         }
-        else if (other.tag == "LegChairRest" && logExist == true)
+
+        //When the saw collide with the log that is for the backrest of the chair
+        //It will destory the log and the backrest of the chair will appear.
+        else if (other.tag == "LegChairRest" && logExist == true && seatTimerActive == false && legTimerActive == false)
         {
             logExist = false;
             Debug.Log("logExist is true");
