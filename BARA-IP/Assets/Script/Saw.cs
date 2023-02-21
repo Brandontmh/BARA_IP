@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class Saw : MonoBehaviour
 {
@@ -8,13 +9,57 @@ public class Saw : MonoBehaviour
     public ParticleSystem dustParticle;
     public GameObject[] chair;
 
+    public TextMeshProUGUI legTimer;
+    public TextMeshProUGUI seatTimer;
+    public TextMeshProUGUI backTimer;
+    public float currentTime = 0f;
 
+    private bool legTimerActive = true;
+    private bool seatTimerActive = false;
+    private bool backTimerActive = false;
+
+
+    private void Awake()
+    {
+        currentTime = 0f;
+        legTimerActive = true;
+        seatTimerActive = false;
+        backTimerActive = false;
+}
 
 
 
     private void Update()
     {
-        if(logExist == false)
+
+        if (legTimerActive = true)
+        {
+            currentTime = currentTime + Time.deltaTime;
+
+            legTimer.text = currentTime.ToString("F2") + " seconds";
+            Debug.Log("Check1");
+
+        }
+
+        if (seatTimerActive = true)
+        {
+            currentTime = currentTime + Time.deltaTime;
+
+            seatTimer.text = currentTime.ToString("F2") + " seconds";
+            Debug.Log("Check2");
+
+        }
+
+        if (backTimerActive = true)
+        {
+            currentTime = currentTime + Time.deltaTime;
+
+            backTimer.text = currentTime.ToString("F2") + " seconds";
+            Debug.Log("Check3");
+
+        }
+
+        if (logExist == false)
         {
             dustParticle.Play();
         }
@@ -47,6 +92,9 @@ public class Saw : MonoBehaviour
                 chair[1].SetActive(true);
                 chair[2].SetActive(true);
                 chair[3].SetActive(true);
+                legTimerActive = false;
+                currentTime = 0f;
+                seatTimerActive = true;
             }
         }
         else if (other.tag == "LogChairSeat" && logExist == true)
@@ -65,6 +113,9 @@ public class Saw : MonoBehaviour
                 logExist = true;
                 Debug.Log("logExist is false");
                 chair[4].SetActive(true);
+                seatTimerActive = false;
+                currentTime = 0f;
+                backTimerActive = true;
             }
         }
         else if (other.tag == "LogChairRest" && logExist == true)
@@ -83,6 +134,7 @@ public class Saw : MonoBehaviour
                 logExist = true;
                 Debug.Log("logExist is false");
                 chair[5].SetActive(true);
+                backTimerActive = false;
             }
         }
     }
