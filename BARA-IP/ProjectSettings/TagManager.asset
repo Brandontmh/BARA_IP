@@ -8,6 +8,9 @@ TagManager:
   - Right Hand
   - Log
   - Saw
+  - LogChairLeg
+  - LogChairSeat
+  - LegChairRest
   layers:
   - Default
   - TransparentFX
