@@ -41,7 +41,7 @@ public class Saw : MonoBehaviour
 
         }
 
-        if (seatTimerActive = true)
+        else if (seatTimerActive = true)
         {
             currentTime = currentTime + Time.deltaTime;
 
@@ -50,7 +50,7 @@ public class Saw : MonoBehaviour
 
         }
 
-        if (backTimerActive = true)
+        else if (backTimerActive = true)
         {
             currentTime = currentTime + Time.deltaTime;
 
@@ -95,6 +95,7 @@ public class Saw : MonoBehaviour
                 legTimerActive = false;
                 currentTime = 0f;
                 seatTimerActive = true;
+                Debug.Log(seatTimerActive);
             }
         }
         else if (other.tag == "LogChairSeat" && logExist == true)
