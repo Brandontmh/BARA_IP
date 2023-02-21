@@ -119,7 +119,7 @@ public class Saw : MonoBehaviour
                 backTimerActive = true;
             }
         }
-        else if (other.tag == "LogChairRest" && logExist == true)
+        else if (other.tag == "LegChairRest" && logExist == true)
         {
             logExist = false;
             Debug.Log("logExist is true");
