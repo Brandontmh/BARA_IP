@@ -1165,6 +1165,7 @@ MonoBehaviour:
   - {fileID: 1048865164}
   - {fileID: 919132148941710711}
   - {fileID: 1902789049}
+  table: []
   legTimer: {fileID: 1114947899}
   seatTimer: {fileID: 1698181682}
   backTimer: {fileID: 479253573}
@@ -2658,7 +2659,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 259448496}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.78, y: 2.726, z: -0.15}
+  m_LocalPosition: {x: -2.78, y: 2.726, z: -0.833}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -7317,6 +7318,7 @@ MonoBehaviour:
   - {fileID: 1048865164}
   - {fileID: 919132148941710711}
   - {fileID: 1902789049}
+  table: []
   legTimer: {fileID: 1114947899}
   seatTimer: {fileID: 1698181682}
   backTimer: {fileID: 479253573}

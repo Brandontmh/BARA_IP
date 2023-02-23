@@ -8,6 +8,7 @@ public class Saw : MonoBehaviour
     bool logExist = true;
     public ParticleSystem dustParticle;
     public GameObject[] chair;
+    public GameObject[] table;
 
     public TextMeshProUGUI legTimer;
     public TextMeshProUGUI seatTimer;
@@ -166,6 +167,30 @@ public class Saw : MonoBehaviour
                 Debug.Log("logExist is false");
                 chair[5].SetActive(true);
                 backTimerActive = false;
+            }
+        }
+
+        else if (other.tag == "LogTableLeg" && logExist == true)
+        {
+            sawSound.Play();
+            logExist = false;
+            Debug.Log("logExist is true");
+            Debug.Log("Collided with " + other);
+
+            StartCoroutine(waiter3());
+
+            IEnumerator waiter3()
+            {
+                yield return new WaitForSeconds(5);
+                Debug.Log("waiting");
+                Destroy(other.gameObject);
+                sawSound.Stop();
+                logExist = true;
+                Debug.Log("logExist is false");
+                table[0].SetActive(true);
+                seatTimerActive = false;
+                currentTime = 0f;
+                backTimerActive = true;
             }
         }
     }
