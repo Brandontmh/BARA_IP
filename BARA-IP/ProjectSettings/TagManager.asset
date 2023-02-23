@@ -11,6 +11,8 @@ TagManager:
   - LogChairLeg
   - LogChairSeat
   - LegChairRest
+  - LogTableTop
+  - LogTableLeg
   layers:
   - Default
   - TransparentFX
