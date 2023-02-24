@@ -3010,6 +3010,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TableLeg1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 43f8b5637d13ce84bb103b59ae5c4e26,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43f8b5637d13ce84bb103b59ae5c4e26, type: 3}
 --- !u!1 &282579350 stripped
@@ -6294,6 +6299,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: TableLeg4
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 43f8b5637d13ce84bb103b59ae5c4e26,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43f8b5637d13ce84bb103b59ae5c4e26, type: 3}
 --- !u!1 &572563307 stripped
@@ -9045,6 +9055,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TableLeg3
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 43f8b5637d13ce84bb103b59ae5c4e26,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43f8b5637d13ce84bb103b59ae5c4e26, type: 3}
@@ -16772,6 +16787,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TableLeg2
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 43f8b5637d13ce84bb103b59ae5c4e26,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 43f8b5637d13ce84bb103b59ae5c4e26, type: 3}
