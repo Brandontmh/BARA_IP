@@ -188,11 +188,34 @@ public class Saw : MonoBehaviour
                 logExist = true;
                 Debug.Log("logExist is false");
                 table[0].SetActive(true);
-                seatTimerActive = false;
-                currentTime = 0f;
-                backTimerActive = true;
+                table[1].SetActive(true);
+                table[2].SetActive(true);
+                table[3].SetActive(true);
             }
         }
+
+        else if (other.tag == "LogTableTop" && logExist == true)
+        {
+            sawSound.Play();
+            logExist = false;
+            Debug.Log("logExist is true");
+            Debug.Log("Collided with " + other);
+
+            StartCoroutine(waiter4());
+
+            IEnumerator waiter4()
+            {
+                yield return new WaitForSeconds(5);
+                Debug.Log("waiting");
+                Destroy(other.gameObject);
+                sawSound.Stop();
+                logExist = true;
+                Debug.Log("logExist is false");
+                table[4].SetActive(true);
+            }
+        }
+
+
     }
 }
     
