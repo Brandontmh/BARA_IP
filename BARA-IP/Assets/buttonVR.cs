@@ -6,7 +6,11 @@ using TMPro;
 
 public class buttonVR : MonoBehaviour
 {
+    public GameObject tableList;
+    public GameObject chairList;
+    public bool beginTheGame;
     public GameObject button;
+    public GameObject otherButton;
     //public Rigidbody shoppingListModel;
     //public Transform spawnpoint;
     public UnityEvent onPress;
@@ -14,12 +18,14 @@ public class buttonVR : MonoBehaviour
     GameObject presser;
     AudioSource sound;
     bool isPressed;
-
+    
     // Start is called before the first frame update
-    void Start()
+    void Start()    
     {
         sound = GetComponent<AudioSource>();
         isPressed = false;
+        beginTheGame = false;
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -31,12 +37,13 @@ public class buttonVR : MonoBehaviour
             onPress.Invoke();
             sound.Play();
             isPressed = true;
+
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if(other.gameObject == presser)
+        if (other.gameObject == presser)
         {
             button.transform.localPosition = new Vector3(0, 0.015f, 0);
             onRelease.Invoke();
@@ -44,12 +51,20 @@ public class buttonVR : MonoBehaviour
         }
     }
 
-    public void beginMiniGame()
+    public void beginGame()
     {
-        RevealUI.freePlayStatus = true;
-        Debug.Log("off Ui");
-        DetectObjects.stopwatchActive = true;
-        //Instantiate(shoppingListModel, spawnpoint.position, spawnpoint.rotation);
+        beginTheGame = true;
+        chairList.SetActive(true);
+        otherButton.SetActive(false);
+    }
+
+    public void beginTableGame()
+    {
+
+            beginTheGame = true;
+            tableList.SetActive(true);
+            otherButton.SetActive(false);
+    
     }
 
 }

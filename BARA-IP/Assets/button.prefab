@@ -144,7 +144,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 4fa617b899f0c9f4bbb7b3b4441f439d, type: 2}
+  - {fileID: 2100000, guid: 01d8d6c05ac24d540a50e49d7ed5c35e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -213,7 +213,7 @@ GameObject:
   - component: {fileID: 8536979781592168395}
   - component: {fileID: 8536979781592168392}
   - component: {fileID: 8536979781592168393}
-  - component: {fileID: 8536979781592168438}
+  - component: {fileID: 1426693401893197413}
   m_Layer: 7
   m_Name: collider
   m_TagString: Untagged
@@ -369,7 +369,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &8536979781592168438
+--- !u!114 &1426693401893197413
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -378,25 +378,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 8536979781592168436}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b31617fc36b58d24a9b3d7654ce81589, type: 3}
+  m_Script: {fileID: 11500000, guid: 0cd71fea20d21454eb92a85b0e94de7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  button: {fileID: 8536979780040838347}
+  button: {fileID: 8536979780353721178}
   onPress:
     m_PersistentCalls:
       m_Calls: []
   onRelease:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 8536979781592168438}
-        m_TargetAssemblyTypeName: buttonVR, Assembly-CSharp
-        m_MethodName: beginMiniGame
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []

@@ -1,2 +1,0 @@
-# BARA_IP
-IP

@@ -8,15 +8,16 @@ public class Saw : MonoBehaviour
     bool logExist = true;
     public ParticleSystem dustParticle;
     public GameObject[] chair;
-    public GameObject[] table;
 
+    public buttonVR buttonVR;
+    public GameObject buttonEnd;
     public TextMeshProUGUI legTimer;
     public TextMeshProUGUI seatTimer;
     public TextMeshProUGUI backTimer;
     public TextMeshProUGUI totalTimer;
     public float currentTime = 0f;
     private float totalTime;
-
+    
     public AudioSource sawSound;
 
     private bool legTimerActive;
@@ -28,64 +29,75 @@ public class Saw : MonoBehaviour
     private void Start()
     {
         currentTime = 0f;
-        totalTimerActive = true;
-        legTimerActive = true;
+        totalTimerActive = false;
+        legTimerActive = false;
         seatTimerActive = false;
         backTimerActive = false;
-}
+    }
 
 
 
-    private void Update()
+    public void Update()
     {
-        if(totalTimerActive == true)
+        if (buttonVR.beginTheGame == true && seatTimerActive == false && backTimerActive == false)
+        {
+            totalTimerActive = true;
+            legTimerActive = true;
+        }
+
+        if (totalTimerActive == true)
         {
             totalTime += Time.deltaTime;
-            totalTimer.text = "Total Time " + totalTime.ToString("F2") + " seconds";
+            totalTimer.text = "Total Time: " + totalTime.ToString("F2") + " seconds";
+            if (legTimerActive == false && seatTimerActive == false && backTimerActive == false)
+            {
+                totalTimerActive = false;
+            }
         }
-        
+       
+
 
         if (legTimerActive == true)
         {
+
             currentTime = currentTime + Time.deltaTime;
 
-            legTimer.text = currentTime.ToString("F2") + " seconds";
+            legTimer.text = "Chair leg: " + currentTime.ToString("F2") + " seconds";
             Debug.Log("Check1");
 
         }
 
-        else if (seatTimerActive == true)
+        if (seatTimerActive == true)
         {
             currentTime = currentTime + Time.deltaTime;
 
-            seatTimer.text = currentTime.ToString("F2") + " seconds";
+            seatTimer.text = "Chair seat: " + currentTime.ToString("F2") + " seconds";
             Debug.Log("Check2");
 
         }
 
-        else if (backTimerActive == true)
+        if (backTimerActive == true)
         {
             currentTime = currentTime + Time.deltaTime;
 
-            backTimer.text = currentTime.ToString("F2") + " seconds";
+            backTimer.text = "Chair back: " + currentTime.ToString("F2") + " seconds";
             Debug.Log("Check3");
 
         }
 
         if (logExist == false)
-        {   
+        {
             //Play VFX
             dustParticle.Play();
         }
 
         else
-        {   
+        {
             //Stop VFX
             dustParticle.Stop();
         }
 
     }
-
     public void OnTriggerEnter(Collider other)
     {
         //When the saw collide with the log that is for the leg of the chair
@@ -93,8 +105,6 @@ public class Saw : MonoBehaviour
         if (other.tag == "LogChairLeg" && logExist == true)
         {
             logExist = false;
-            Debug.Log("logExist is true");
-            Debug.Log("Collided with " + other);
 
             StartCoroutine(waiter());
             sawSound.Play();
@@ -102,11 +112,9 @@ public class Saw : MonoBehaviour
             IEnumerator waiter()
             {
                 yield return new WaitForSeconds(5);
-                Debug.Log("waiting");
                 Destroy(other.gameObject);
                 sawSound.Stop();
                 logExist = true;
-                Debug.Log("logExist is false");
                 chair[0].SetActive(true);
                 chair[1].SetActive(true);
                 chair[2].SetActive(true);
@@ -116,7 +124,7 @@ public class Saw : MonoBehaviour
                 Debug.Log(legTimerActive);
                 Debug.Log(seatTimerActive);
                 currentTime = 0f;
-                
+
             }
         }
 
@@ -126,19 +134,15 @@ public class Saw : MonoBehaviour
         {
             sawSound.Play();
             logExist = false;
-            Debug.Log("logExist is true");
-            Debug.Log("Collided with " + other);
 
             StartCoroutine(waiter1());
 
             IEnumerator waiter1()
             {
                 yield return new WaitForSeconds(5);
-                Debug.Log("waiting");
                 Destroy(other.gameObject);
                 sawSound.Stop();
                 logExist = true;
-                Debug.Log("logExist is false");
                 chair[4].SetActive(true);
                 seatTimerActive = false;
                 currentTime = 0f;
@@ -152,70 +156,20 @@ public class Saw : MonoBehaviour
         {
             sawSound.Play();
             logExist = false;
-            Debug.Log("logExist is true");
-            Debug.Log("Collided with " + other);
 
             StartCoroutine(waiter2());
 
             IEnumerator waiter2()
             {
                 yield return new WaitForSeconds(5);
-                Debug.Log("waiting");
                 Destroy(other.gameObject);
                 sawSound.Stop();
                 logExist = true;
-                Debug.Log("logExist is false");
                 chair[5].SetActive(true);
                 backTimerActive = false;
+                buttonEnd.SetActive(true);
+                buttonVR.beginTheGame = false;
             }
         }
-
-        else if (other.tag == "LogTableLeg" && logExist == true)
-        {
-            sawSound.Play();
-            logExist = false;
-            Debug.Log("logExist is true");
-            Debug.Log("Collided with " + other);
-
-            StartCoroutine(waiter3());
-
-            IEnumerator waiter3()
-            {
-                yield return new WaitForSeconds(5);
-                Debug.Log("waiting");
-                Destroy(other.gameObject);
-                sawSound.Stop();
-                logExist = true;
-                Debug.Log("logExist is false");
-                table[0].SetActive(true);
-                table[1].SetActive(true);
-                table[2].SetActive(true);
-                table[3].SetActive(true);
-            }
-        }
-
-        else if (other.tag == "LogTableTop" && logExist == true)
-        {
-            sawSound.Play();
-            logExist = false;
-            Debug.Log("logExist is true");
-            Debug.Log("Collided with " + other);
-
-            StartCoroutine(waiter4());
-
-            IEnumerator waiter4()
-            {
-                yield return new WaitForSeconds(5);
-                Debug.Log("waiting");
-                Destroy(other.gameObject);
-                sawSound.Stop();
-                logExist = true;
-                Debug.Log("logExist is false");
-                table[4].SetActive(true);
-            }
-        }
-
-
     }
 }
-    
